@@ -14,7 +14,7 @@ import { httpClient } from '../httpClient'
 import { tokenStorage } from '@/shared/auth/tokenStorage'
 
 function mockFetch(status: number, body: unknown) {
-  global.fetch = vi.fn().mockResolvedValue({
+  globalThis.fetch = vi.fn().mockResolvedValue({
     ok: status >= 200 && status < 300,
     status,
     json: () => Promise.resolve(body),
@@ -31,7 +31,7 @@ describe('httpClient', () => {
 
     await httpClient('/endpoint')
 
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/endpoint'),
       expect.objectContaining({
         headers: expect.objectContaining({
@@ -47,7 +47,7 @@ describe('httpClient', () => {
 
     await httpClient('/endpoint')
 
-    const [, options] = vi.mocked(global.fetch).mock.calls[0]!
+    const [, options] = vi.mocked(globalThis.fetch).mock.calls[0]!
     const headers = (options as RequestInit).headers as Record<string, string>
     expect(headers['Authorization']).toBeUndefined()
   })

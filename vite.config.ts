@@ -11,10 +11,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          state: ['@reduxjs/toolkit', 'react-redux', '@tanstack/react-query'],
-          forms: ['react-hook-form'],
+        manualChunks(id) {
+          if (['react', 'react-dom', 'react-router-dom'].some((m) => id.includes(`node_modules/${m}/`))) return 'vendor'
+          if (['@reduxjs/toolkit', 'react-redux', '@tanstack/react-query'].some((m) => id.includes(`node_modules/${m}/`))) return 'state'
+          if (id.includes('node_modules/react-hook-form/')) return 'forms'
         },
       },
     },
