@@ -151,7 +151,7 @@ A hierarquia é verificada automaticamente em `eslint.config.ts`. Qualquer impor
 
 ## Revisão
 
-- Revisão inicial: 2026-11-24
+- Revisão futura: 2026-11-24
 - Triggers: crescimento do time acima de 5 desenvolvedores front-end, adição de microfrontends, incidente de acoplamento circular
 
 ## Histórico

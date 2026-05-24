@@ -176,7 +176,7 @@ window.addEventListener('auth:unauthorized', handleUnauthorized)
 
 ## Revisão
 
-- Revisão inicial: 2026-11-24
+- Revisão futura: 2026-11-24
 - Triggers: migração para cookies `httpOnly` no back-end, incidente de segurança relacionado a XSS, mudança no provedor de identidade
 
 ## Histórico

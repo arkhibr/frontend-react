@@ -165,7 +165,7 @@ export const store = configureStore({
 
 ## Revisão
 
-- Revisão inicial: 2026-11-24
+- Revisão futura: 2026-11-24
 - Triggers: migração de versão maior do React Query ou Redux Toolkit, adição de estado offline
 
 ## Histórico
