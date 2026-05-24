@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, staging]
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: TypeScript — análise estática
+        run: npx tsc --noEmit
+
+      - name: ESLint — fronteiras FSD + regras
+        run: npx eslint src/
+
+      - name: Vitest — testes unitários e de integração
+        run: npm run test:coverage
+
+      - name: Vite build — verificar que compila
+        run: npm run build
+        env:
+          VITE_ENV: production
+          VITE_API_BASE_URL: https://api.clientes.placeholder.com
