@@ -85,6 +85,45 @@ Manter arquivos sem estrutura imposta, conforme o projeto for crescendo.
 
 FSD é a única metodologia front-end com documentação formal, hierarquia de camadas explícita e suporte a verificação automatizada. A organização por tipo técnico é adequada para projetos pequenos, mas produz dívida técnica previsível em projetos que crescem. A combinação FSD + `eslint-plugin-boundaries` torna a arquitetura uma propriedade verificável do código, não uma intenção documentada.
 
+### Diagrama — Hierarquia de Camadas FSD
+
+```mermaid
+%%{init: {'theme': 'dark'}}%%
+graph TD
+    app["app\ninicialização · providers · router"]
+    pages["pages\ncomposição de telas"]
+    widgets["widgets\nblocos de UI compostos"]
+    features["features\nfuncionalidades de negócio"]
+    entities["entities\nmodelos de domínio"]
+    shared["shared\ninfraestrutua · UI base · tipos"]
+
+    app -->|"depende de"| pages
+    pages -->|"depende de"| widgets
+    widgets -->|"depende de"| features
+    features -->|"depende de"| entities
+    entities -->|"depende de"| shared
+
+    classDef camada fill:#1e3a5f,color:#90cdf4,stroke:#2b6cb0
+    class app,pages,widgets,features,entities,shared camada
+```
+
+A hierarquia é verificada automaticamente em `eslint.config.ts`. Qualquer importação que suba na hierarquia falha o lint:
+
+```typescript
+// eslint.config.ts — regras de dependência entre camadas FSD
+'boundaries/dependencies': ['error', {
+  default: 'disallow',
+  rules: [
+    { from: { type: 'shared' },   disallow: { to: { type: '*' } } },
+    { from: { type: 'entities' }, allow: { to: { type: ['shared'] } } },
+    { from: { type: 'features' }, allow: { to: { type: ['entities', 'shared'] } } },
+    { from: { type: 'widgets' },  allow: { to: { type: ['features', 'entities', 'shared'] } } },
+    { from: { type: 'pages' },    allow: { to: { type: ['widgets', 'features', 'entities', 'shared'] } } },
+    { from: { type: 'app' },      allow: { to: { type: ['pages', 'widgets', 'features', 'entities', 'shared'] } } },
+  ],
+}]
+```
+
 ## Consequências
 
 ### Positivas

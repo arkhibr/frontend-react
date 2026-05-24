@@ -13,30 +13,36 @@ status: draft
 
 O **Portal Web** é uma aplicação de página única (SPA) construída com React 19 e TypeScript, compilada via Vite e servida em produção pelo Nginx. Consome a **API de Clientes** (back-end Python) via HTTPS com autenticação JWT. A estrutura interna segue a metodologia **Feature-Sliced Design (FSD)**, com camadas de dependência estritas verificadas automaticamente pelo ESLint na esteira de CI.
 
-## Diagrama C4 — Contexto
+## Diagrama de Contexto
 
 ```mermaid
-C4Context
-    title Contexto — Portal Web
-    Person(user, "Usuário", "Cliente ou operador que acessa o portal via navegador")
-    System(portal, "Portal Web", "SPA React 19 servida via Nginx. Permite autenticação e acesso ao painel de gestão.")
-    System_Ext(api, "API de Clientes", "Back-end Python. Fornece dados e processa operações de negócio.")
-    Rel(user, portal, "Acessa", "HTTPS")
-    Rel(portal, api, "Consome", "HTTPS + Bearer JWT")
+%%{init: {'theme': 'dark'}}%%
+graph LR
+    user(["👤 Usuário\ncliente ou operador"])
+    portal["Portal Web\nSPA React 19 + TypeScript"]
+    api["API de Clientes\nback-end Python"]
+
+    user -->|"HTTPS"| portal
+    portal -->|"HTTPS + Bearer JWT"| api
 ```
 
-## Diagrama C4 — Container
+## Diagrama de Containers
 
 ```mermaid
-C4Container
-    title Containers — Portal Web
-    Person(user, "Usuário", "Acessa via navegador")
-    Container(nginx, "Nginx", "Servidor HTTP", "Serve os arquivos estáticos compilados. Implementa SPA routing via try_files.")
-    Container(spa, "Portal Web", "React 19 + TypeScript", "SPA executada no navegador. Gerencia autenticação, estado e navegação entre páginas.")
-    System_Ext(api, "API de Clientes", "Python", "Fornece dados via HTTPS + JWT")
-    Rel(user, nginx, "Solicita página", "HTTPS")
-    Rel(nginx, spa, "Entrega", "HTML + JS + CSS")
-    Rel(spa, api, "Consome", "HTTPS + Bearer JWT")
+%%{init: {'theme': 'dark'}}%%
+graph LR
+    user(["👤 Usuário"])
+
+    subgraph infra["Infraestrutura de produção"]
+        nginx["Nginx\nservidor HTTP estático"]
+        spa["Portal Web\nReact 19 + TypeScript\nexecutado no navegador"]
+    end
+
+    api["API de Clientes\nPython"]
+
+    user -->|"HTTPS"| nginx
+    nginx -->|"HTML + JS + CSS"| spa
+    spa -->|"HTTPS + Bearer JWT"| api
 ```
 
 ## Mapa de Módulos
@@ -54,10 +60,10 @@ C4Container
 
 | ID | Decisão | Status |
 |----|---------|--------|
-| [ADR-001](adrs/ADR-001-plataforma-tecnologica.md) | Tática de plataforma tecnológica | Accepted |
-| [ADR-002](adrs/ADR-002-modularizacao.md) | Tática de modularização | Accepted |
-| [ADR-003](adrs/ADR-003-gerenciamento-de-estado.md) | Tática de gerenciamento de estado | Accepted |
-| [ADR-004](adrs/ADR-004-autenticacao.md) | Tática de autenticação | Accepted |
-| [ADR-005](adrs/ADR-005-testes.md) | Tática de testes | Accepted |
-| [ADR-006](adrs/ADR-006-conteinizacao.md) | Tática de conteinerização | Accepted |
-| [ADR-007](adrs/ADR-007-imposicao-fronteiras-arquiteturais.md) | Tática de imposição de fronteiras arquiteturais | Accepted |
+| [ADR-001](adrs/ADR-001-plataforma-tecnologica.md) | Tática de plataforma tecnológica | Proposed |
+| [ADR-002](adrs/ADR-002-modularizacao.md) | Tática de modularização | Proposed |
+| [ADR-003](adrs/ADR-003-gerenciamento-de-estado.md) | Tática de gerenciamento de estado | Proposed |
+| [ADR-004](adrs/ADR-004-autenticacao.md) | Tática de autenticação | Proposed |
+| [ADR-005](adrs/ADR-005-testes.md) | Tática de testes | Proposed |
+| [ADR-006](adrs/ADR-006-conteinizacao.md) | Tática de conteinerização | Proposed |
+| [ADR-007](adrs/ADR-007-imposicao-fronteiras-arquiteturais.md) | Tática de imposição de fronteiras arquiteturais | Proposed |

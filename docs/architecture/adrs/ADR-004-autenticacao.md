@@ -88,6 +88,66 @@ Armazenar token apenas em memória (`useState`).
 
 Cookies `httpOnly` são a solução mais segura, mas exigem alterações no back-end que estão fora do escopo atual. `localStorage` tem perfil de segurança inferior por persistir além da sessão. `sessionStorage` oferece o melhor equilíbrio disponível: isolamento por aba, limpeza automática e zero dependência de back-end. A combinação com `sessionMonitor` e o evento `auth:unauthorized` cria dois mecanismos independentes de detecção de expiração — por relógio do cliente e por resposta do servidor.
 
+### Diagrama — Fluxo de Autenticação
+
+```mermaid
+%%{init: {'theme': 'dark'}}%%
+sequenceDiagram
+    actor U as Usuário
+    participant SPA as Portal Web
+    participant TS as tokenStorage
+    participant SM as sessionMonitor
+    participant API as API de Clientes
+
+    U->>SPA: login(usuário, senha)
+    SPA->>API: POST /auth/token
+    API-->>SPA: { access_token }
+    SPA->>TS: set(token)
+    SPA->>SM: start()
+
+    loop a cada 60s
+        SM->>TS: get()
+        SM->>SM: isTokenExpired?
+        alt token expirado
+            SM->>SPA: dispatch(logout())
+            SPA->>TS: clear()
+        end
+    end
+
+    SPA->>API: GET /recurso (Bearer token)
+    alt 401 Unauthorized
+        API-->>SPA: 401
+        SPA-->>SPA: event(auth:unauthorized)
+        SPA->>SPA: dispatch(logout())
+        SPA->>TS: clear()
+    end
+```
+
+O armazenamento usa `sessionStorage` com interface explícita para isolar o acesso ao token (`src/shared/auth/tokenStorage.ts`):
+
+```typescript
+const KEY = 'portal_access_token'
+
+export const tokenStorage = {
+  get(): string | null { return sessionStorage.getItem(KEY) },
+  set(token: string): void { sessionStorage.setItem(KEY, token) },
+  clear(): void { sessionStorage.removeItem(KEY) },
+}
+```
+
+O `sessionMonitor` combina dois mecanismos de detecção (`src/shared/auth/sessionMonitor.ts`):
+
+```typescript
+// mecanismo 1: verificação proativa a cada 60s pelo relógio do cliente
+intervalId = setInterval(() => {
+  const token = tokenStorage.get()
+  if (token && isTokenExpired(token)) store.dispatch(logout())
+}, 60_000)
+
+// mecanismo 2: reação à rejeição do servidor via evento DOM
+window.addEventListener('auth:unauthorized', handleUnauthorized)
+```
+
 ## Consequências
 
 ### Positivas

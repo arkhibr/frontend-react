@@ -91,6 +91,53 @@ Usar apenas `useState` e `useEffect` para todo o estado.
 
 Redux Toolkit resolve bem o que o Redux sempre resolveu (estado global síncrono, rastreável e inspecionável via DevTools), mas com muito menos código repetitivo. React Query resolve o que o Redux resolve mal (cache de dados remotos, revalidação em segundo plano, estados de carregamento e erro). A combinação das duas é um padrão amplamente adotado na comunidade React para aplicações de médio e grande porte.
 
+### Diagrama — Separação de Estado
+
+```mermaid
+%%{init: {'theme': 'dark'}}%%
+graph LR
+    api["API de Clientes"]
+
+    subgraph cliente["Estado do Cliente — Redux Toolkit"]
+        auth["authSlice\ntoken · user · isAuthenticated"]
+        ui["uiSlice\nsidebar · modal · toasts"]
+        session["sessionSlice\nlastActivityAt · timeout"]
+    end
+
+    subgraph servidor["Estado do Servidor — React Query"]
+        qc["QueryClient\ncache · revalidação · retry"]
+    end
+
+    api -->|"dados remotos"| qc
+    auth -.->|"logout() ao expirar"| api
+```
+
+O `QueryClient` é configurado com valores conservadores para evitar requisições desnecessárias (`src/shared/lib/queryClient.ts`):
+
+```typescript
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,  // cache válido por 5 min antes de revalidar
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
+```
+
+As fatias Redux são registradas em `src/shared/lib/store/index.ts`. Cada fatia tem escopo exclusivo — sem sobreposição de responsabilidades:
+
+```typescript
+export const store = configureStore({
+  reducer: {
+    auth: authSlice.reducer,       // identidade e token do usuário autenticado
+    ui: uiSlice.reducer,           // estado visual: sidebar, modal ativo, toasts
+    session: sessionSlice.reducer, // controle de inatividade e timeout de sessão
+  },
+})
+```
+
 ## Consequências
 
 ### Positivas
