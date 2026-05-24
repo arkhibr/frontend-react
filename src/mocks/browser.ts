@@ -1,4 +1,4 @@
-// src/mocks/browser.ts (placeholder — will be replaced in Task 18)
-export const worker = {
-  start: (_options?: unknown) => Promise.resolve(),
-}
+import { setupWorker } from 'msw/browser'
+import { handlers } from './handlers'
+
+export const worker = setupWorker(...handlers)
