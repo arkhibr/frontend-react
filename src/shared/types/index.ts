@@ -1,0 +1,3 @@
+// src/shared/types/index.ts
+export type Nullable<T> = T | null
+export type Maybe<T> = T | undefined
