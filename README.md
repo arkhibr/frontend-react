@@ -1,73 +1,38 @@
-# React + TypeScript + Vite
+# Portal Web — frontend-react
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação de página única (SPA) construída com React 19 e TypeScript. Consome a API de Clientes via HTTPS com autenticação JWT. Estrutura interna baseada em Feature-Sliced Design (FSD).
 
-Currently, two official plugins are available:
+## Documentação Arquitetural
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+A documentação completa de arquitetura está em [`docs/architecture/`](docs/architecture/README.md):
 
-## React Compiler
+- Diagramas C4 (Contexto e Container)
+- Mapa de módulos com links para documentação de cada camada
+- 7 Decisões Arquiteturais (ADRs)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Desenvolvimento local
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+A aplicação sobe em `http://localhost:5173`. O servidor de simulação MSW é ativado automaticamente em modo de desenvolvimento.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Comandos disponíveis
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Servidor de desenvolvimento com recarregamento automático |
+| `npm run build` | Compilação para produção em `dist/` |
+| `npm run test` | Testes unitários e de integração via Vitest |
+| `npm run test:coverage` | Testes com relatório de cobertura |
+| `npm run test:e2e` | Testes de ponta a ponta via Playwright |
+| `npm run lint` | Verificação de estilo e fronteiras arquiteturais via ESLint |
+| `npm run type-check` | Verificação de tipos TypeScript sem compilação |
+
+## Variáveis de ambiente
+
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `VITE_API_BASE_URL` | URL base da API de Clientes | `https://api.clientes.exemplo.com` |
