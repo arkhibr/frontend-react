@@ -1,16 +1,3 @@
----
-source: frontend-react
-processed_by: thor
-date: 2026-05-24
-domain: architecture
-tags: [fsd, modularizacao, estrutura]
-status: pending_review
-type: adr
-adr_version: madr-v4
-adr_status: proposed
-source_attribution: MADR v4 (adr.github.io/madr) + arc-kit (MIT, tractorjuice)
----
-
 # ADR-002: Tática de modularização
 
 ## Contexto e Problema

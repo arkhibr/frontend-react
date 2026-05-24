@@ -1,16 +1,3 @@
----
-source: frontend-react
-processed_by: thor
-date: 2026-05-24
-domain: architecture
-tags: [redux, react-query, estado, frontend]
-status: pending_review
-type: adr
-adr_version: madr-v4
-adr_status: proposed
-source_attribution: MADR v4 (adr.github.io/madr) + arc-kit (MIT, tractorjuice)
----
-
 # ADR-003: Tática de gerenciamento de estado
 
 ## Contexto e Problema

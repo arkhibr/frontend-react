@@ -1,12 +1,3 @@
----
-source: frontend-react
-processed_by: thor
-date: 2026-05-24
-domain: architecture
-tags: [react, typescript, fsd, redux, vite]
-status: draft
----
-
 # Arquitetura — Portal Web (frontend-react)
 
 ## Visão Geral

@@ -1,14 +1,3 @@
----
-source: frontend-react
-processed_by: thor
-date: 2026-05-24
-domain: architecture
-tags: [react, typescript, vite]
-status: pending_review
-type: adr
-adr_status: proposed
----
-
 # ADR-001: Tática de plataforma tecnológica
 
 ## Contexto

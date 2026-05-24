@@ -1,14 +1,3 @@
----
-source: frontend-react
-processed_by: thor
-date: 2026-05-24
-domain: architecture
-tags: [eslint, fsd, fronteiras, qualidade]
-status: pending_review
-type: adr
-adr_status: proposed
----
-
 # ADR-007: Tática de imposição de fronteiras arquiteturais
 
 ## Contexto
