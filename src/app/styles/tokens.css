@@ -1,0 +1,7 @@
+@theme {
+  --color-primary: #1A56DB;
+  --color-secondary: #6B7280;
+  --color-danger: #E02424;
+  --color-surface: #F9FAFB;
+  --font-family-sans: "Inter", sans-serif;
+}
