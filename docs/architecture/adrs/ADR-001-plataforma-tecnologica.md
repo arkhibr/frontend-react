@@ -6,7 +6,7 @@ domain: architecture
 tags: [react, typescript, vite]
 status: pending_review
 type: adr
-adr_status: accepted
+adr_status: proposed
 ---
 
 # ADR-001: Tática de plataforma tecnológica

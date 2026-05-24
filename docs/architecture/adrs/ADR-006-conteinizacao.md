@@ -6,7 +6,7 @@ domain: architecture
 tags: [docker, nginx, conteinizacao]
 status: pending_review
 type: adr
-adr_status: accepted
+adr_status: proposed
 ---
 
 # ADR-006: Tática de conteinerização

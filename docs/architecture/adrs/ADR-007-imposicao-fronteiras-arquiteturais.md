@@ -6,7 +6,7 @@ domain: architecture
 tags: [eslint, fsd, fronteiras, qualidade]
 status: pending_review
 type: adr
-adr_status: accepted
+adr_status: proposed
 ---
 
 # ADR-007: Tática de imposição de fronteiras arquiteturais

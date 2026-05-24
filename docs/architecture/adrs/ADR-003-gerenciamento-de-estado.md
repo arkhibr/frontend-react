@@ -7,7 +7,7 @@ tags: [redux, react-query, estado, frontend]
 status: pending_review
 type: adr
 adr_version: madr-v4
-adr_status: accepted
+adr_status: proposed
 source_attribution: MADR v4 (adr.github.io/madr) + arc-kit (MIT, tractorjuice)
 ---
 
@@ -138,4 +138,4 @@ Redux Toolkit resolve bem o que o Redux sempre resolveu (estado global síncrono
 
 | Versão | Data | Autor | Mudanças |
 |--------|------|-------|----------|
-| 1.0 | 2026-05-24 | Thor | Versão inicial |
+| 1.0 | 2026-05-24 | Marco Mendes | Versão inicial |

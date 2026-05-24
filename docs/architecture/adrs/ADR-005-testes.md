@@ -6,7 +6,7 @@ domain: architecture
 tags: [vitest, playwright, msw, testes]
 status: pending_review
 type: adr
-adr_status: accepted
+adr_status: proposed
 ---
 
 # ADR-005: Tática de testes
