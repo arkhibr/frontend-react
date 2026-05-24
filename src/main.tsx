@@ -1,10 +1,23 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { RouterProvider } from 'react-router-dom'
+import { Providers } from '@/app/providers'
+import { router } from '@/app/router'
+import '@/app/styles/globals.css'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+async function prepare() {
+  if (import.meta.env.DEV) {
+    const { worker } = await import('@/mocks/browser')
+    await worker.start({ onUnhandledRequest: 'bypass' })
+  }
+}
+
+prepare().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <Providers>
+        <RouterProvider router={router} />
+      </Providers>
+    </StrictMode>,
+  )
+})
