@@ -1,0 +1,62 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Build + Deploy Staging
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build imagem Docker — staging
+        run: |
+          docker build \
+            --build-arg VITE_ENV=staging \
+            --build-arg VITE_API_BASE_URL=${{ secrets.STAGING_API_URL }} \
+            -t ${{ secrets.REGISTRY }}/portal-web:staging-${{ github.sha }} \
+            -t ${{ secrets.REGISTRY }}/portal-web:staging \
+            .
+
+      - name: Login no registry
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY }} -u ${{ secrets.REGISTRY_USER }} --password-stdin
+
+      - name: Push imagem
+        run: |
+          docker push ${{ secrets.REGISTRY }}/portal-web:staging-${{ github.sha }}
+          docker push ${{ secrets.REGISTRY }}/portal-web:staging
+
+      - name: Configurar SSH para deploy
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.STAGING_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Deploy no servidor de staging
+        run: |
+          ssh -o StrictHostKeyChecking=no deploy@${{ secrets.STAGING_HOST }} << 'EOF'
+            docker pull ${{ secrets.REGISTRY }}/portal-web:staging
+            docker stop portal-web 2>/dev/null || true
+            docker rm portal-web 2>/dev/null || true
+            docker run -d \
+              --name portal-web \
+              -p 80:80 \
+              --restart unless-stopped \
+              ${{ secrets.REGISTRY }}/portal-web:staging
+          EOF
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Testes E2E — smoke test pós-deploy
+        run: npx playwright test tests/e2e/auth/login.spec.ts --reporter=github
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ secrets.STAGING_URL }}
