@@ -1,0 +1,63 @@
+name: Deploy Produção
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    name: Build + Deploy Produção
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Build imagem Docker — produção
+        run: |
+          docker build \
+            --build-arg VITE_ENV=production \
+            --build-arg VITE_API_BASE_URL=${{ secrets.PROD_API_URL }} \
+            -t ${{ secrets.REGISTRY }}/portal-web:${{ github.ref_name }} \
+            -t ${{ secrets.REGISTRY }}/portal-web:latest \
+            .
+
+      - name: Login no registry
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY }} -u ${{ secrets.REGISTRY_USER }} --password-stdin
+
+      - name: Push imagem
+        run: |
+          docker push ${{ secrets.REGISTRY }}/portal-web:${{ github.ref_name }}
+          docker push ${{ secrets.REGISTRY }}/portal-web:latest
+
+      - name: Configurar SSH para deploy
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Deploy em produção
+        run: |
+          ssh -o StrictHostKeyChecking=no deploy@${{ secrets.PROD_HOST }} << 'EOF'
+            docker pull ${{ secrets.REGISTRY }}/portal-web:${{ github.ref_name }}
+            docker stop portal-web 2>/dev/null || true
+            docker rm portal-web 2>/dev/null || true
+            docker run -d \
+              --name portal-web \
+              -p 80:80 \
+              --restart unless-stopped \
+              ${{ secrets.REGISTRY }}/portal-web:${{ github.ref_name }}
+          EOF
+
+      - name: Verificar health check pós-deploy
+        run: |
+          sleep 10
+          curl -f ${{ secrets.PROD_URL }}/index.html || exit 1
