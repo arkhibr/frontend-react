@@ -5,7 +5,18 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import boundaries from 'eslint-plugin-boundaries'
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'node_modules/**', '*.config.ts', '*.config.js'] },
+  {
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'vite.config.ts',
+      'vitest.config.ts',
+      'playwright.config.ts',
+      'postcss.config.ts',
+      'tailwind.config.ts',
+      'eslint.config.ts',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -14,30 +25,34 @@ export default tseslint.config(
       boundaries,
     },
     settings: {
+      'import/resolver': {
+        typescript: { project: './tsconfig.app.json' },
+        node: { extensions: ['.ts', '.tsx', '.js', '.jsx'] },
+      },
       'boundaries/elements': [
-        { type: 'shared',   pattern: ['src/shared/**'] },
-        { type: 'entities', pattern: ['src/entities/**'] },
-        { type: 'features', pattern: ['src/features/**'] },
-        { type: 'widgets',  pattern: ['src/widgets/**'] },
-        { type: 'pages',    pattern: ['src/pages/**'] },
-        { type: 'app',      pattern: ['src/app/**'] },
-        { type: 'mocks',    pattern: ['src/mocks/**'] },
+        { type: 'shared',   pattern: 'src/shared/**' },
+        { type: 'entities', pattern: 'src/entities/**' },
+        { type: 'features', pattern: 'src/features/**' },
+        { type: 'widgets',  pattern: 'src/widgets/**' },
+        { type: 'pages',    pattern: 'src/pages/**' },
+        { type: 'app',      pattern: 'src/app/**' },
+        { type: 'mocks',    pattern: 'src/mocks/**' },
       ],
       'boundaries/ignore': ['src/main.tsx', 'src/test-setup.ts'],
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      'boundaries/element-types': ['error', {
+      'boundaries/dependencies': ['error', {
         default: 'disallow',
         rules: [
-          { from: 'shared',   allow: [] },
-          { from: 'entities', allow: ['shared'] },
-          { from: 'features', allow: ['entities', 'shared'] },
-          { from: 'widgets',  allow: ['features', 'entities', 'shared'] },
-          { from: 'pages',    allow: ['widgets', 'features', 'entities', 'shared'] },
-          { from: 'app',      allow: ['pages', 'widgets', 'features', 'entities', 'shared'] },
-          { from: 'mocks',    allow: ['shared', 'entities', 'features'] },
+          { from: { type: 'shared' },   disallow: { to: { type: '*' } } },
+          { from: { type: 'entities' }, allow: { to: { type: ['shared'] } } },
+          { from: { type: 'features' }, allow: { to: { type: ['entities', 'shared'] } } },
+          { from: { type: 'widgets' },  allow: { to: { type: ['features', 'entities', 'shared'] } } },
+          { from: { type: 'pages' },    allow: { to: { type: ['widgets', 'features', 'entities', 'shared'] } } },
+          { from: { type: 'app' },      allow: { to: { type: ['pages', 'widgets', 'features', 'entities', 'shared'] } } },
+          { from: { type: 'mocks' },    allow: { to: { type: ['shared', 'entities', 'features'] } } },
         ],
       }],
     },
