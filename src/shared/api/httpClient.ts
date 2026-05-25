@@ -1,15 +1,15 @@
 import { tokenStorage } from '@/shared/auth/tokenStorage'
+import { getApiUrl } from '@/shared/config'
 import { ApiError } from './types'
-
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? ''
 
 export async function httpClient<T>(
   url: string,
   options: RequestInit = {},
 ): Promise<T> {
   const token = tokenStorage.get()
+  const baseUrl = getApiUrl()
 
-  const response = await fetch(`${BASE_URL}${url}`, {
+  const response = await fetch(`${baseUrl}${url}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',

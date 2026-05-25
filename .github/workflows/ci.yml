@@ -28,6 +28,9 @@ jobs:
       - name: ESLint — fronteiras FSD + regras
         run: npx eslint src/
 
+      - name: Stylelint — lint CSS
+        run: npm run lint:css
+
       - name: Vitest — testes unitários e de integração
         run: npm run test:coverage
 
