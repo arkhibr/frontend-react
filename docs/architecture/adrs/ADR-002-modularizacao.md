@@ -8,7 +8,7 @@ O projeto precisava de uma estrutura que mantivesse coesão por domínio, defini
 
 **Pergunta-problema:** Como organizar o código da SPA de forma que funcionalidades sejam coesas, as dependências sejam unidirecionais e as regras sejam verificadas automaticamente?
 
-**Referência primária:** https://feature-sliced.design
+**Referência primária:** https://medium.com/@dtgasparyan/feature-sliced-design-the-ideal-frontend-architecture-84d701ad44ba
 
 ## Drivers
 
