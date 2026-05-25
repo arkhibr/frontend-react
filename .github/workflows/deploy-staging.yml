@@ -13,7 +13,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verificar secrets de deploy
+        id: check
+        env:
+          REGISTRY: ${{ secrets.REGISTRY }}
+        run: |
+          if [ -z "$REGISTRY" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Secrets de deploy não configurados (REGISTRY ausente) — etapas de deploy puladas."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build imagem Docker — staging
+        if: steps.check.outputs.ready == 'true'
         run: |
           docker build \
             --build-arg VITE_ENV=staging \
@@ -23,20 +36,24 @@ jobs:
             .
 
       - name: Login no registry
+        if: steps.check.outputs.ready == 'true'
         run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY }} -u ${{ secrets.REGISTRY_USER }} --password-stdin
 
       - name: Push imagem
+        if: steps.check.outputs.ready == 'true'
         run: |
           docker push ${{ secrets.REGISTRY }}/portal-web:staging-${{ github.sha }}
           docker push ${{ secrets.REGISTRY }}/portal-web:staging
 
       - name: Configurar SSH para deploy
+        if: steps.check.outputs.ready == 'true'
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.STAGING_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
       - name: Deploy no servidor de staging
+        if: steps.check.outputs.ready == 'true'
         run: |
           ssh -o StrictHostKeyChecking=no deploy@${{ secrets.STAGING_HOST }} << 'EOF'
             docker pull ${{ secrets.REGISTRY }}/portal-web:staging
@@ -50,13 +67,17 @@ jobs:
           EOF
 
       - uses: actions/setup-node@v4
+        if: steps.check.outputs.ready == 'true'
         with:
           node-version: '20'
           cache: 'npm'
 
-      - run: npm ci
+      - name: Instalar dependências para E2E
+        if: steps.check.outputs.ready == 'true'
+        run: npm ci
 
       - name: Testes E2E — smoke test pós-deploy
+        if: steps.check.outputs.ready == 'true'
         run: npx playwright test tests/e2e/auth/login.spec.ts --reporter=github
         env:
           PLAYWRIGHT_BASE_URL: ${{ secrets.STAGING_URL }}
