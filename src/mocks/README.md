@@ -8,9 +8,9 @@ Servidor de simulação de API baseado em MSW (Mock Service Worker). Intercepta 
 
 | Arquivo/Pasta | Descrição |
 |---------------|-----------|
-| `handlers.ts` | Definição dos interceptores de rota (ex: `POST /auth/token`) e token de teste |
-| `browser.ts` | Worker MSW para uso no navegador (modo de desenvolvimento) |
-| `server.ts` | Servidor MSW para uso em Node (Vitest) |
+| [`handlers.ts`](./handlers.ts) | Definição dos interceptores de rota (ex: `POST /auth/token`) e token de teste |
+| [`browser.ts`](./browser.ts) | Worker MSW para uso no navegador (modo de desenvolvimento) |
+| [`server.ts`](./server.ts) | Servidor MSW para uso em Node (Vitest) |
 
 ## Como usar
 
