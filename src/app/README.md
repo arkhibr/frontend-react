@@ -8,10 +8,10 @@ Camada de inicialização da aplicação no modelo FSD. Compõe os providers glo
 
 | Arquivo/Pasta | Descrição |
 |---------------|-----------|
-| `providers/index.tsx` | Composição dos providers globais: Redux Store e QueryClient |
-| `router/` | Configuração do roteador, definição de rotas e guards de autenticação |
-| `styles/globals.css` | Estilos globais e importação do Tailwind CSS |
-| `styles/tokens.css` | Variáveis CSS de design (cores, espaçamentos, tipografia) |
+| [`providers/index.tsx`](./providers/index.tsx) | Composição dos providers globais: Redux Store e QueryClient |
+| [`router/`](./router/) | Configuração do roteador, definição de rotas e guards de autenticação |
+| [`styles/globals.css`](./styles/globals.css) | Estilos globais e importação do Tailwind CSS |
+| [`styles/tokens.css`](./styles/tokens.css) | Variáveis CSS de design (cores, espaçamentos, tipografia) |
 
 ## Como usar
 
