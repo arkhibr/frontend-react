@@ -8,9 +8,9 @@ Infraestrutura de autenticação baseada em JWT. Gerencia o ciclo de vida do tok
 
 | Arquivo/Pasta | Descrição |
 |---------------|-----------|
-| `tokenStorage.ts` | Interface de leitura/escrita/limpeza do token em `sessionStorage` |
-| `tokenParser.ts` | Decodifica o payload JWT e verifica expiração pelo relógio do cliente |
-| `sessionMonitor.ts` | Inicia/para o monitoramento proativo de expiração via `setInterval` (60s) e escuta o evento `auth:unauthorized` |
+| [`tokenStorage.ts`](./tokenStorage.ts) | Interface de leitura/escrita/limpeza do token em `sessionStorage` |
+| [`tokenParser.ts`](./tokenParser.ts) | Decodifica o payload JWT e verifica expiração pelo relógio do cliente |
+| [`sessionMonitor.ts`](./sessionMonitor.ts) | Inicia/para o monitoramento proativo de expiração via `setInterval` (60s) e escuta o evento `auth:unauthorized` |
 
 ## Como usar
 
