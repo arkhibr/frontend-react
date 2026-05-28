@@ -8,8 +8,8 @@ Cliente HTTP centralizado para todas as requisições à API de Clientes. Injeta
 
 | Arquivo/Pasta | Descrição |
 |---------------|-----------|
-| `httpClient.ts` | Função `httpClient<T>()` com autoinjeção de token e tratamento de 401 |
-| `types.ts` | Tipos `ApiResponse<T>` e classe `ApiError` com suporte a erros de campo |
+| [`httpClient.ts`](./httpClient.ts) | Função `httpClient<T>()` com autoinjeção de token e tratamento de 401 |
+| [`types.ts`](./types.ts) | Tipos `ApiResponse<T>` e classe `ApiError` com suporte a erros de campo |
 
 ## Como usar
 
