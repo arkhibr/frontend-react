@@ -8,10 +8,10 @@ Configuração declarativa do roteamento da SPA com React Router v7. Define as r
 
 | Arquivo/Pasta | Descrição |
 |---------------|-----------|
-| `index.tsx` | Configuração do `createBrowserRouter` com rotas protegidas e públicas |
-| `routes.ts` | Constantes das rotas disponíveis (`ROUTES.LOGIN`, `ROUTES.DASHBOARD`) |
-| `guards/AuthGuard.tsx` | Redireciona para `/login` se o usuário não estiver autenticado |
-| `guards/GuestGuard.tsx` | Redireciona para `/dashboard` se o usuário já estiver autenticado |
+| [`index.tsx`](./index.tsx) | Configuração do `createBrowserRouter` com rotas protegidas e públicas |
+| [`routes.ts`](./routes.ts) | Constantes das rotas disponíveis (`ROUTES.LOGIN`, `ROUTES.DASHBOARD`) |
+| [`guards/AuthGuard.tsx`](./guards/AuthGuard.tsx) | Redireciona para `/login` se o usuário não estiver autenticado |
+| [`guards/GuestGuard.tsx`](./guards/GuestGuard.tsx) | Redireciona para `/dashboard` se o usuário já estiver autenticado |
 
 ## Como usar
 
