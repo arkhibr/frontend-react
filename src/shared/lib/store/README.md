@@ -8,10 +8,10 @@ Gerenciamento de estado do cliente via Redux Toolkit. Concentra o estado síncro
 
 | Arquivo/Pasta | Descrição |
 |---------------|-----------|
-| `index.ts` | Configura a store Redux e exporta os tipos `RootState` e `AppDispatch` |
-| `authSlice.ts` | Fatia de autenticação: token, payload do usuário e flag `isAuthenticated` |
-| `uiSlice.ts` | Fatia de UI: estado da barra lateral, modal ativo e fila de notificações (toasts) |
-| `sessionSlice.ts` | Fatia de sessão: último registro de atividade e tempo limite de inatividade |
+| [`index.ts`](./index.ts) | Configura a store Redux e exporta os tipos `RootState` e `AppDispatch` |
+| [`authSlice.ts`](./authSlice.ts) | Fatia de autenticação: token, payload do usuário e flag `isAuthenticated` |
+| [`uiSlice.ts`](./uiSlice.ts) | Fatia de UI: estado da barra lateral, modal ativo e fila de notificações (toasts) |
+| [`sessionSlice.ts`](./sessionSlice.ts) | Fatia de sessão: último registro de atividade e tempo limite de inatividade |
 
 ## Como usar
 
