@@ -1,10 +1,7 @@
 import { http, HttpResponse } from 'msw'
+import { TEST_TOKEN } from '@/shared/auth/testToken'
 
-// Test token: { sub: 'user1', exp: 9999999999, iat: 1700000000 }
-export const TEST_TOKEN =
-  'eyJhbGciOiJSUzI1NiJ9' +
-  '.eyJzdWIiOiJ1c2VyMSIsImV4cCI6OTk5OTk5OTk5OSwiaWF0IjoxNzAwMDAwMDAwfQ' +
-  '.signature'
+export { TEST_TOKEN }
 
 export const handlers = [
   http.post('/auth/token', () =>

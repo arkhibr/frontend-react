@@ -11,8 +11,14 @@ import '@/app/styles/globals.css'
 async function prepare() {
   await loadConfig()
   if (import.meta.env.DEV) {
-    const { worker } = await import('@/mocks/browser')
-    await worker.start({ onUnhandledRequest: 'bypass' })
+    // MSW é ferramenta de dev: se o Service Worker não registrar (arquivo
+    // ausente, SW bloqueado), apenas avisa — não derruba o boot do shell.
+    try {
+      const { worker } = await import('@/mocks/browser')
+      await worker.start({ onUnhandledRequest: 'bypass' })
+    } catch (err) {
+      console.warn('[msw] worker não registrado; seguindo sem mocks:', err)
+    }
   }
 }
 
