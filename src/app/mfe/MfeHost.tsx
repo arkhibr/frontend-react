@@ -1,0 +1,60 @@
+import { useEffect, useRef } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import type { RootState } from '@/shared/lib/store'
+import { logout } from '@/shared/lib/store/authSlice'
+import { getApiUrl } from '@/shared/config'
+import { MfeErrorBoundary } from './MfeErrorBoundary'
+import { loadMfeModule } from './loadMfeModule'
+import type { MfeEntry, MfeModule } from './types'
+
+export function MfeHost({ entry }: { entry: MfeEntry }) {
+  const hostRef = useRef<HTMLDivElement>(null)
+  const token = useSelector((s: RootState) => s.auth.token)
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    if (entry.state !== 'active') return
+    const el = hostRef.current
+    if (!el) return
+
+    let mod: MfeModule | null = null
+    let cancelled = false
+
+    loadMfeModule(entry.url)
+      .then((m) => {
+        if (cancelled) return
+        mod = m
+        m.mount(el, {
+          apiUrl: getApiUrl(),
+          token,
+          basePath: entry.route,
+          onUnauthorized: () => dispatch(logout()),
+        })
+      })
+      .catch((err) => {
+        console.error(`[mfe] falha ao carregar "${entry.name}":`, err)
+        throw err
+      })
+
+    return () => {
+      cancelled = true
+      if (mod && el) mod.unmount(el)
+    }
+  }, [entry.url, entry.route, entry.state, entry.name, token, dispatch])
+
+  if (entry.state === 'maintenance') {
+    return (
+      <div role="status" className="rounded border border-secondary/30 bg-surface p-6 text-secondary">
+        O módulo <strong>{entry.name}</strong> está em manutenção.
+      </div>
+    )
+  }
+
+  if (entry.state === 'disabled') return null
+
+  return (
+    <MfeErrorBoundary mfeName={entry.name}>
+      <div ref={hostRef} data-mfe={entry.id} />
+    </MfeErrorBoundary>
+  )
+}
