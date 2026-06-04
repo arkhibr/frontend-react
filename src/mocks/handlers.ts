@@ -13,4 +13,10 @@ export const handlers = [
   http.put('/usuario/endereco', async ({ request }) =>
     HttpResponse.json(await request.json()),
   ),
+  http.get('/usuario/emprestimo', () =>
+    HttpResponse.json({ valor: '10000', parcelas: '12' }),
+  ),
+  http.put('/usuario/emprestimo', async ({ request }) =>
+    HttpResponse.json(await request.json()),
+  ),
 ]

@@ -8,6 +8,14 @@
       "url": "http://localhost:4566/mfe-endereco/endereco.js",
       "route": "/endereco",
       "dependsOn": []
+    },
+    {
+      "id": "emprestimo",
+      "name": "Simulação de Empréstimo",
+      "state": "active",
+      "url": "http://localhost:4566/mfe-emprestimo/emprestimo.js",
+      "route": "/emprestimo",
+      "dependsOn": ["endereco"]
     }
   ]
 }
