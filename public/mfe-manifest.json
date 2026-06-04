@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "mfes": [
+    {
+      "id": "endereco",
+      "name": "Alteração de Endereço",
+      "state": "active",
+      "url": "http://localhost:4566/mfe-endereco/endereco.js",
+      "route": "/endereco",
+      "dependsOn": []
+    }
+  ]
+}
