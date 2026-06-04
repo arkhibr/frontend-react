@@ -26,26 +26,8 @@
 
 O repositório desempenha o papel de **shell nuclear**: um núcleo estável que cuida de autenticação, layout, roteamento e do carregamento dos MFEs. Funcionalidades de negócio entram e saem da plataforma **sem recompilar o shell** — basta declará-las no manifesto. Cada MFE é construído, versionado e implantado de forma independente, empacota o próprio React e se comunica apenas com o back-end (via `apiUrl`), nunca com outros MFEs.
 
-```mermaid
-%%{init: {'theme': 'dark'}}%%
-graph LR
-    user(["👤 Usuário"])
-    subgraph browser["Navegador"]
-        shell["Shell nuclear\nReact 19 · auth · layout · router"]
-        mfe["MFE autônomo\nbundle ESM (ex.: endereço)"]
-    end
-    subgraph s3["Object storage (S3 / LocalStack)"]
-        manifest["mfe-manifest.json"]
-        bundle["bundles dos MFEs"]
-    end
-    api["API de Clientes\nPython"]
-    user -->|HTTPS| shell
-    shell -->|fetch manifesto| manifest
-    shell -->|import em runtime| bundle
-    bundle -->|monta na rota| mfe
-    shell -->|HTTPS + Bearer JWT| api
-    mfe -->|HTTPS + Bearer JWT| api
-```
+<img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/e9426edc-acb4-431a-b159-fcb782b84c03" />
+
 
 A decisão e o racional completos estão em [ADR-008 — Arquitetura de microfrontends dinâmicos](docs/architecture/adrs/ADR-008-microfrontends-dinamicos.md).
 
@@ -87,6 +69,11 @@ frontend-react/
     └── config.json            ← config de ambiente (opcional)
 ```
 
+Além disso, o padrão de organização de pastas chamado FSD (Feature Sliced Design é usado).
+
+<img width="1254" height="1254" alt="image" src="https://github.com/user-attachments/assets/c709073d-3c74-4ee7-8e86-2e1dab8d817f" />
+
+
 ## Documentação por módulo
 
 | Área | Responsabilidade | Documentação |
@@ -101,6 +88,12 @@ frontend-react/
 | Mocks (MSW) | Back-end simulado | [`src/mocks/README.md`](src/mocks/README.md) |
 | MFE de endereço | MFE de exemplo, ponta a ponta | [`mfes/endereco/README.md`](mfes/endereco/README.md) |
 | Infra local | LocalStack S3 | [`infra/README.md`](infra/README.md) |
+
+
+## Pilha Tecnológica Adotada
+
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/21bb9731-29ef-4047-9c4a-0247098083ef" />
+
 
 ## Decisões arquiteturais (ADRs)
 
