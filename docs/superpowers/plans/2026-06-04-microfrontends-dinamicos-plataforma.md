@@ -10,13 +10,17 @@
 
 **Spec:** `docs/superpowers/specs/2026-06-04-microfrontends-dinamicos-plataforma-design.md`
 
-**Layout de diretórios (pastas-irmãs locais):**
+**Layout de diretórios (repo único — opção didática):**
 ```
-/Volumes/Marco-Dev/dev/
-├── frontend-react/      ← shell nuclear (este repo)
-├── mfe-endereco/        ← novo repo do MFE de endereço
-└── arkhi-mfe-infra/     ← docker-compose (LocalStack) + orquestração
+frontend-react/              ← repo único
+├── src/                     ← shell nuclear + runtime de MFE
+├── mfes/
+│   └── endereco/            ← MFE de endereço (package.json/vite/vitest próprios)
+├── infra/docker-compose.yml ← LocalStack
+└── public/mfe-manifest.json
 ```
+
+> **⚠️ Limitação didática (assumida):** esta POC usa **um repositório único com uma pasta por MFE** para simplificar o estudo, em vez dos repositórios isolados do requisito original ("mín. 3 repos / 2 MFEs"). Cada pasta de MFE mantém `package.json`, build e deploy **independentes** (a independência de build/deploy é real); o que **não** se demonstra é o isolamento de *repositório* (escrita restrita, CI/CD próprio, CODEOWNERS). **Em produção, a recomendação de microfrontends é repositório isolado por MFE** — ver spec §3 e ADR-011 (Task 23).
 
 ---
 
@@ -987,24 +991,23 @@ git commit -m "docs(mfe): README do runtime com mapa codigo-decisao"
 
 ---
 
-## Fase 2 — MFE de endereço (em `mfe-endereco/`, repo novo)
+## Fase 2 — MFE de endereço (em `mfes/endereco/`, mesmo repo)
 
-> Trabalhe no diretório `/Volumes/Marco-Dev/dev/mfe-endereco`. Repo git independente.
+> Trabalhe na pasta `mfes/endereco/` dentro do repo `frontend-react`. Pasta autônoma (próprio `package.json`/`node_modules`/build), **não** é repo git separado.
 
-### Task 11: Scaffold do repo `mfe-endereco`
+### Task 11: Scaffold da pasta `mfes/endereco`
 
 **Files:**
-- Create: `mfe-endereco/package.json`
-- Create: `mfe-endereco/tsconfig.json`
-- Create: `mfe-endereco/vite.config.ts`
-- Create: `mfe-endereco/vitest.config.ts`
-- Create: `mfe-endereco/.gitignore`
+- Create: `mfes/endereco/package.json`
+- Create: `mfes/endereco/tsconfig.json`
+- Create: `mfes/endereco/vite.config.ts`
+- Create: `mfes/endereco/vitest.config.ts`
+- Create: `mfes/endereco/.gitignore`
 
-- [ ] **Step 1: Inicializar o repositório e instalar dependências**
+- [ ] **Step 1: Criar a pasta e instalar dependências**
 
 ```bash
-mkdir -p /Volumes/Marco-Dev/dev/mfe-endereco && cd /Volumes/Marco-Dev/dev/mfe-endereco
-git init
+mkdir -p mfes/endereco && cd mfes/endereco
 npm init -y
 npm install react@^19.2.6 react-dom@^19.2.6 react-hook-form@^7.76.1
 npm install -D typescript@~6.0.2 vite@^8.0.12 @vitejs/plugin-react@^6.0.1 \
@@ -1095,7 +1098,7 @@ export default defineConfig({
 
 - [ ] **Step 6: Ajustar `package.json` (scripts + type module)**
 
-Editar `mfe-endereco/package.json` para conter:
+Editar `mfes/endereco/package.json` para conter:
 
 ```json
 {
@@ -1119,11 +1122,12 @@ Editar `mfe-endereco/package.json` para conter:
 import '@testing-library/jest-dom/vitest'
 ```
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 8: Commit** (a partir da raiz do repo)
 
 ```bash
-git add -A
-git commit -m "chore: scaffold do repo mfe-endereco (vite lib mode + vitest)"
+cd /Volumes/Marco-Dev/dev/frontend-react
+git add mfes/endereco
+git commit -m "chore: scaffold da pasta mfes/endereco (vite lib mode + vitest)"
 ```
 
 ---
@@ -1133,13 +1137,13 @@ git commit -m "chore: scaffold do repo mfe-endereco (vite lib mode + vitest)"
 Cada MFE tem seu próprio httpClient — não importa nada do shell. Recebe `apiUrl`/`token` por parâmetro.
 
 **Files:**
-- Create: `mfe-endereco/src/api/httpClient.ts`
-- Test: `mfe-endereco/src/api/__tests__/httpClient.test.ts`
+- Create: `mfes/endereco/src/api/httpClient.ts`
+- Test: `mfes/endereco/src/api/__tests__/httpClient.test.ts`
 
 - [ ] **Step 1: Escrever o teste que falha**
 
 ```ts
-// mfe-endereco/src/api/__tests__/httpClient.test.ts
+// mfes/endereco/src/api/__tests__/httpClient.test.ts
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { createHttpClient } from '../httpClient'
 
@@ -1174,7 +1178,7 @@ Expected: FAIL (módulo inexistente)
 - [ ] **Step 3: Implementar**
 
 ```ts
-// mfe-endereco/src/api/httpClient.ts
+// mfes/endereco/src/api/httpClient.ts
 export interface HttpClientDeps {
   apiUrl: string
   token: string | null
@@ -1218,13 +1222,13 @@ git commit -m "feat(endereco): httpClient autonomo do MFE"
 ### Task 13: Formulário de endereço
 
 **Files:**
-- Create: `mfe-endereco/src/EnderecoForm.tsx`
-- Test: `mfe-endereco/src/__tests__/EnderecoForm.test.tsx`
+- Create: `mfes/endereco/src/EnderecoForm.tsx`
+- Test: `mfes/endereco/src/__tests__/EnderecoForm.test.tsx`
 
 - [ ] **Step 1: Escrever o teste que falha**
 
 ```tsx
-// mfe-endereco/src/__tests__/EnderecoForm.test.tsx
+// mfes/endereco/src/__tests__/EnderecoForm.test.tsx
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -1257,7 +1261,7 @@ Expected: FAIL (módulo inexistente)
 - [ ] **Step 3: Implementar**
 
 ```tsx
-// mfe-endereco/src/EnderecoForm.tsx
+// mfes/endereco/src/EnderecoForm.tsx
 import { useForm } from 'react-hook-form'
 
 export interface Endereco {
@@ -1296,13 +1300,13 @@ git commit -m "feat(endereco): formulario de alteracao de endereco"
 ### Task 14: App do MFE (carrega + salva endereço)
 
 **Files:**
-- Create: `mfe-endereco/src/EnderecoApp.tsx`
-- Test: `mfe-endereco/src/__tests__/EnderecoApp.test.tsx`
+- Create: `mfes/endereco/src/EnderecoApp.tsx`
+- Test: `mfes/endereco/src/__tests__/EnderecoApp.test.tsx`
 
 - [ ] **Step 1: Escrever o teste que falha**
 
 ```tsx
-// mfe-endereco/src/__tests__/EnderecoApp.test.tsx
+// mfes/endereco/src/__tests__/EnderecoApp.test.tsx
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { EnderecoApp } from '../EnderecoApp'
@@ -1328,7 +1332,7 @@ Expected: FAIL (módulo inexistente)
 - [ ] **Step 3: Implementar**
 
 ```tsx
-// mfe-endereco/src/EnderecoApp.tsx
+// mfes/endereco/src/EnderecoApp.tsx
 import { useEffect, useState } from 'react'
 import { createHttpClient } from './api/httpClient'
 import { EnderecoForm, type Endereco } from './EnderecoForm'
@@ -1364,7 +1368,7 @@ export function EnderecoApp({ ctx }: { ctx: MfeMountContext }) {
 
 - [ ] **Step 4: Criar o tipo do contrato (cópia local — MFE é autônomo)**
 
-Create: `mfe-endereco/src/contract.ts`
+Create: `mfes/endereco/src/contract.ts`
 
 ```ts
 // Contrato publicado pelo shell (ADR-009). Cópia local para manter o MFE autônomo.
@@ -1397,13 +1401,13 @@ git commit -m "feat(endereco): app que carrega e salva endereco via API"
 ### Task 15: Ponto de entrada — implementa o contrato `mount`/`unmount`
 
 **Files:**
-- Create: `mfe-endereco/src/index.tsx`
-- Test: `mfe-endereco/src/__tests__/contract.test.tsx`
+- Create: `mfes/endereco/src/index.tsx`
+- Test: `mfes/endereco/src/__tests__/contract.test.tsx`
 
 - [ ] **Step 1: Escrever o teste que falha**
 
 ```tsx
-// mfe-endereco/src/__tests__/contract.test.tsx
+// mfes/endereco/src/__tests__/contract.test.tsx
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount, unmount } from '../index'
 
@@ -1438,7 +1442,7 @@ Expected: FAIL (módulo inexistente)
 - [ ] **Step 3: Implementar**
 
 ```tsx
-// mfe-endereco/src/index.tsx
+// mfes/endereco/src/index.tsx
 import { StrictMode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { EnderecoApp } from './EnderecoApp'
@@ -1489,7 +1493,7 @@ git commit -m "feat(endereco): ponto de entrada implementando contrato mount/unm
 ### Task 16: README do MFE de endereço
 
 **Files:**
-- Create: `mfe-endereco/README.md`
+- Create: `mfes/endereco/README.md`
 
 - [ ] **Step 1: Escrever o README**
 
@@ -1526,20 +1530,19 @@ git commit -m "docs(endereco): README com mapa codigo-decisao"
 
 ## Fase 3 — Infraestrutura e deploy
 
-### Task 17: docker-compose com LocalStack (em `arkhi-mfe-infra/`)
+### Task 17: docker-compose com LocalStack (em `infra/`)
 
 **Files:**
-- Create: `arkhi-mfe-infra/docker-compose.yml`
-- Create: `arkhi-mfe-infra/README.md`
+- Create: `infra/docker-compose.yml`
+- Create: `infra/README.md`
 
-- [ ] **Step 1: Criar o repo de infra e o compose**
+- [ ] **Step 1: Criar a pasta de infra e o compose**
 
 ```bash
-mkdir -p /Volumes/Marco-Dev/dev/arkhi-mfe-infra && cd /Volumes/Marco-Dev/dev/arkhi-mfe-infra
-git init
+mkdir -p infra
 ```
 
-Create: `docker-compose.yml`
+Create: `infra/docker-compose.yml`
 
 ```yaml
 services:
@@ -1557,52 +1560,55 @@ services:
 
 - [ ] **Step 2: Criar README de infra**
 
-Create: `README.md`
+Create: `infra/README.md`
 
 ```markdown
-# arkhi-mfe-infra
+# infra
 
-Orquestração local da plataforma de microfrontends.
+Orquestração local da plataforma de microfrontends (LocalStack S3).
 
 ## Subir o ambiente
-```bash
-docker compose up -d        # LocalStack S3 em :4566
-```
-Depois, em cada MFE: `npm run build && npm run deploy`.
-Por fim, no shell (`frontend-react`): `npm run dev`.
+\```bash
+docker compose -f infra/docker-compose.yml up -d   # LocalStack S3 em :4566
+\```
+Depois, em cada MFE (`mfes/<id>/`): `npm run build && npm run deploy`.
+Por fim, no shell (raiz): `npm run dev`.
 ```
 
-- [ ] **Step 3: Subir e validar**
+- [ ] **Step 3: Ignorar o volume do LocalStack**
 
-Run: `docker compose up -d && sleep 5 && curl -s http://localhost:4566/_localstack/health`
+Adicionar `infra/.localstack/` ao `.gitignore` da raiz do repo.
+
+- [ ] **Step 4: Subir e validar**
+
+Run: `docker compose -f infra/docker-compose.yml up -d && sleep 5 && curl -s http://localhost:4566/_localstack/health`
 Expected: JSON com `"s3"` disponível
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-echo ".localstack/" > .gitignore
-git add -A
+git add infra/docker-compose.yml infra/README.md .gitignore
 git commit -m "chore(infra): docker-compose com LocalStack S3"
 ```
 
 ---
 
-### Task 18: Script de deploy do MFE para o S3 (em `mfe-endereco/`)
+### Task 18: Script de deploy do MFE para o S3 (em `mfes/endereco/`)
 
 **Files:**
-- Create: `mfe-endereco/scripts/deploy.ts`
+- Create: `mfes/endereco/scripts/deploy.ts`
 
 - [ ] **Step 1: Instalar o AWS SDK v3**
 
 ```bash
-cd /Volumes/Marco-Dev/dev/mfe-endereco
+cd /Volumes/Marco-Dev/dev/frontend-react/mfes/endereco
 npm install -D @aws-sdk/client-s3@^3
 ```
 
 - [ ] **Step 2: Implementar o deploy**
 
 ```ts
-// mfe-endereco/scripts/deploy.ts
+// mfes/endereco/scripts/deploy.ts
 import { readFileSync } from 'node:fs'
 import { S3Client, CreateBucketCommand, PutObjectCommand, PutBucketPolicyCommand } from '@aws-sdk/client-s3'
 
@@ -1825,7 +1831,7 @@ git commit -m "docs(adr): ADR-008 arquitetura de microfrontends dinamicos"
   - Por que Module Federation foi **descartado**: seu valor é *compartilhar* deps (React singleton), o que contraria "MFE autônomo, sem deps entre si"; acopla versões e adiciona runtime de federação.
   - Contrato formal (assinatura `MfeMountContext`, `mount`, `unmount`), regras de validação, ciclo de vida (mount na rota / unmount ao sair / remontagem por mudança de token).
   - Trade-offs aceitos: cada MFE empacota o próprio React (bundle maior) — preço da autonomia.
-  - Links: `src/app/mfe/types.ts`, `loadMfeModule.ts`, `MfeHost.tsx`, `mfe-endereco/src/index.tsx`.
+  - Links: `src/app/mfe/types.ts`, `loadMfeModule.ts`, `MfeHost.tsx`, `mfes/endereco/src/index.tsx`.
 
 - [ ] **Step 2: Commit**
 
@@ -1844,7 +1850,7 @@ git commit -m "docs(adr): ADR-009 contrato mount/unmount entre shell e MFEs"
 
 - [ ] **Step 1: ADR-010** — manifesto separado do `config.json`, estados (`active`/`disabled`/`maintenance`), `dependsOn`, ordenação topológica + detecção de ciclo, validação fail-fast. Links: `manifest.ts`, `dependencyResolver.ts`, `public/mfe-manifest.json`.
 
-- [ ] **Step 2: ADR-011** — build independente em Vite lib mode, bucket S3 por MFE (LocalStack), deploy via AWS SDK v3, mín. 3 repos para 2 MFEs (escrita restrita via CODEOWNERS). Links: `mfe-endereco/vite.config.ts`, `scripts/deploy.ts`, `arkhi-mfe-infra/docker-compose.yml`.
+- [ ] **Step 2: ADR-011** — build independente em Vite lib mode, bucket S3 por MFE (LocalStack), deploy via AWS SDK v3. **Documentar a decisão de topologia:** repo único com `mfes/<id>/` adotado como **limitação didática** (independência de build/deploy preservada, isolamento de repositório não); **recomendação para produção = repositório isolado por MFE** com CI/CD próprio, escrita restrita (CODEOWNERS/branch protection). Links: `mfes/endereco/vite.config.ts`, `mfes/endereco/scripts/deploy.ts`, `infra/docker-compose.yml`.
 
 - [ ] **Step 3: Commit**
 
@@ -1882,9 +1888,9 @@ git commit -m "docs(arch): mapa de modulos e ADRs da plataforma de microfrontend
 ## Verificação final (Sub-projeto A)
 
 - [ ] No shell: `npm run type-check && npm run lint && npm test` → tudo verde.
-- [ ] No `mfe-endereco`: `npm run build && npm run test:coverage` → bundle gerado, cobertura ≥ 80%.
+- [ ] Em `mfes/endereco/`: `npm run build && npm run test:coverage` → bundle gerado, cobertura ≥ 80%.
 - [ ] LocalStack no ar + `npm run deploy` → `curl http://localhost:4566/mfe-endereco/endereco.js` retorna 200.
 - [ ] `npm run test:e2e` no shell → fluxo dinâmico passa **e** o teste de isolamento de falha passa.
-- [ ] ADR-008..011 escritos e linkados; `src/app/mfe/README.md` e `mfe-endereco/README.md` presentes.
+- [ ] ADR-008..011 escritos e linkados; `src/app/mfe/README.md` e `mfes/endereco/README.md` presentes.
 
-Concluído o Sub-projeto A, o **Sub-projeto B (`mfe-emprestimo`)** segue o mesmo padrão das Tasks 11–18, adicionando uma entrada ao `public/mfe-manifest.json` com `dependsOn: ["endereco"]` — provando que adicionar um MFE não toca o shell nem o `mfe-endereco`.
+Concluído o Sub-projeto A, o **Sub-projeto B (`mfes/emprestimo/`)** segue o mesmo padrão das Tasks 11–18, adicionando uma entrada ao `public/mfe-manifest.json` com `dependsOn: ["endereco"]` — provando que adicionar um MFE não toca o shell nem o MFE de endereço.

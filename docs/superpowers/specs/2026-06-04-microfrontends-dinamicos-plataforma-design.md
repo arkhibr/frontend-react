@@ -18,7 +18,7 @@ Estender a POC atual (`frontend-react` — SPA React 19 + TS + Vite, arquitetura
 - Cada MFE em um **bucket S3** (LocalStack local), instanciado dentro de uma `<div>`.
 - MFEs **só falam com o back-end** — sem comunicação direta entre si.
 - Build e deploy **totalmente independentes** por MFE.
-- **Mínimo de 3 repositórios para 2 MFEs**: um por módulo + o principal (escrita restrita).
+- **Mínimo de 3 repositórios para 2 MFEs**: um por módulo + o principal (escrita restrita). → **Adaptado nesta POC para repo único didático; ver D3 e §3.**
 - E2E com Playwright; unidade com Vitest; cobertura para publicação independente.
 - READMEs com mapa código → decisão; ADRs com links para arquivos.
 - Domínios da POC: alteração de endereço, fale conosco, simulação de empréstimo. **Esta POC começa com 2 MFEs: endereço + empréstimo.**
@@ -29,7 +29,7 @@ Estender a POC atual (`frontend-react` — SPA React 19 + TS + Vite, arquitetura
 |---|---------|---------------|
 | D1 | **Orquestração:** Docker (LocalStack :4566) + scripts Node (AWS SDK v3 JS). Sem .NET/Aspire. | Projeto é 100% Node/Vite; mantém a stack homogênea. |
 | D2 | **Integração:** contrato `mount`/`unmount` via **Vite lib mode + `import()` ESM nativo**. **Module Federation descartado.** | Module Federation existe para *compartilhar* deps (React singleton) — contraria "autônomo, sem deps entre si". O contrato é a fronteira mínima e nativa. |
-| D3 | **Repos:** `frontend-react` vira o **shell nuclear**; cada MFE é repo git próprio em pasta-irmã local. | Atende "mín. 3 repos / 2 MFEs". Escrita restrita via CODEOWNERS + branch protection (no push futuro). |
+| D3 | **Repo único (didático):** `frontend-react` é o shell **e** hospeda os MFEs em `mfes/<id>/`, cada um com build/deploy independentes. | Simplifica o estudo. **Limitação assumida:** não isola repositórios. Em produção, cada MFE = repo isolado com escrita restrita (CODEOWNERS/branch protection). Ver §3 e ADR-011. |
 | D4 | **POC com 2 MFEs:** `endereco` + `emprestimo`. | Fecha o ciclo ponta-a-ponta; o 2º MFE prova adição sem tocar os outros. |
 | D5 | **Manifesto separado** (`mfe-manifest.json`), distinto do `config.json` atual. | Dono e ciclo de vida diferentes (plataforma curadora a rede; config = ambiente/tema). |
 | D6 | **Estados do MFE:** `active` / `disabled` / `maintenance`. | Cobre ativação, ocultação e janela de manutenção. |
@@ -39,14 +39,18 @@ Estender a POC atual (`frontend-react` — SPA React 19 + TS + Vite, arquitetura
 ## 3. Topologia de repositórios
 
 ```
-arkhi-mfe/                       ← orquestração comum (docker-compose LocalStack, scripts)
-├── shell-nuclear/  (este repo)  ← núcleo imutável + RUNTIME de MFE
-├── mfe-endereco/                ← repo próprio (lib mode)  → bucket: mfe-endereco
-└── mfe-emprestimo/              ← repo próprio (Sub-projeto B) → bucket: mfe-emprestimo
+frontend-react/                  ← repo único (didático)
+├── src/                         ← shell nuclear + RUNTIME de MFE
+├── mfes/
+│   ├── endereco/                ← MFE (package.json/vite/vitest próprios) → bucket: mfe-endereco
+│   └── emprestimo/              ← MFE (Sub-projeto B)                     → bucket: mfe-emprestimo
+├── infra/docker-compose.yml     ← LocalStack
+└── public/mfe-manifest.json
 ```
 
-- Pastas-irmãs locais, cada uma um repositório git real (pusháveis para `arkhibr` depois).
-- `arkhi-mfe/` guarda `docker-compose.yml` (LocalStack) e scripts comuns de orquestração.
+> **⚠️ Limitação didática (assumida):** para simplificar o estudo, esta POC usa **um repositório único com uma pasta por MFE**, em vez dos repositórios isolados que o requisito original previa ("mín. 3 repos para 2 MFEs"). Cada pasta de MFE ainda tem `package.json`, build e deploy **independentes** — então a independência de *build/deploy* é demonstrada de verdade. O que **não** se demonstra aqui é o isolamento de *repositório* (escrita restrita por equipe, branch protection, CODEOWNERS).
+>
+> **Recomendação para produção:** cada MFE deve ser um **repositório git isolado**, com pipeline de CI/CD próprio e escrita restrita ao time dono. O isolamento de repositório é parte central do valor de microfrontends (autonomia de times, blast radius de deploy, governança) — a pasta única é apenas um atalho de aprendizado. Ver ADR-011.
 
 ## 4. Contrato `mount` / `unmount` (núcleo arquitetural — ADR-009)
 
@@ -145,34 +149,33 @@ Sequência no boot (estende `src/main.tsx`):
 
 ## 8. Back-end / mocks (MSW)
 
-- **Dev:** cada repo tem seu próprio MSW com os handlers do seu domínio. O shell mantém os handlers de auth.
+- **Dev:** cada MFE tem seus próprios handlers MSW de domínio. No repo único, o shell hospeda os handlers de auth e os de domínio para o ambiente de dev/E2E (em produção/repo isolado, viriam do back-end real).
 - `mfe-endereco`: handlers de leitura/atualização de endereço do usuário.
 - O MFE faz `fetch` real para `apiUrl`; o MSW responde no lugar do servidor. Trocar por API real = mudar `apiUrl` no `config.json`, sem alterar o MFE.
 
 ## 9. Build & deploy
 
-- **Cada MFE:** `vite build` em **lib mode** → `dist/<id>.js` (ESM único, React embutido).
-- **`scripts/deploy-mfe.ts`** (AWS SDK v3 JS): `CreateBucket` idempotente + `PutObject` para LocalStack `:4566`, com hospedagem estática / leitura pública.
-- **`docker-compose.yml`** sobe o LocalStack.
-- **`npm run env:up`** orquestra: sobe LocalStack + faz deploy dos MFEs nos buckets.
-- **Shell:** build normal; servido via `vite preview` (ou bucket próprio) apontando o manifesto para as URLs dos buckets.
+- **Cada MFE** (`mfes/<id>/`): `vite build` em **lib mode** → `dist/<id>.js` (ESM único, React embutido), com `package.json` e scripts próprios — build/deploy independentes.
+- **`mfes/<id>/scripts/deploy.ts`** (AWS SDK v3 JS): `CreateBucket` idempotente + `PutObject` para LocalStack `:4566`, com leitura pública.
+- **`infra/docker-compose.yml`** sobe o LocalStack.
+- **Shell:** build/`dev` normal, apontando o manifesto para as URLs dos buckets.
 
 ## 10. Qualidade
 
-- **Vitest por repo:**
+- **Vitest por projeto** (shell e cada MFE têm suíte e `vitest.config` próprios):
   - shell: `manifest` (validação), `dependencyResolver` (topo-sort + ciclo), `MfeHost` (montagem, unmount, error boundary, maintenance).
-  - `mfe-endereco`: contrato (`mount`/`unmount`) + lógica de domínio + formulário.
-- **Cobertura por repo:** threshold de **80%** (configurado no `vitest.config`), garantindo publicação independente sem risco de impacto.
+  - `mfes/endereco`: contrato (`mount`/`unmount`) + lógica de domínio + formulário.
+- **Cobertura por projeto:** threshold de **80%** (no `vitest.config` de cada um), garantindo publicação independente sem risco de impacto.
 - **Playwright (no shell):** sobe LocalStack + deploy → login → navega até `/endereco` → MFE monta na `<div>` → fluxo de alteração de endereço. Inclui caso de **MFE ausente/com erro** para provar isolamento (shell sobrevive).
 
 ## 11. Documentação
 
-- **README por repo** com mapa código → decisão arquitetural (padrão doc-as-code já adotado, com links para arquivos-fonte).
+- **README por projeto** (shell e cada `mfes/<id>/`) com mapa código → decisão arquitetural (padrão doc-as-code já adotado, com links para arquivos-fonte).
 - **Novos ADRs** (linkados aos arquivos), continuando a numeração existente:
   - **ADR-008** — Arquitetura de microfrontends dinâmicos (visão geral, shell nuclear, S3/LocalStack).
   - **ADR-009** — Contrato `mount`/`unmount` (o ADR robusto: motivação, opções, por que Module Federation foi descartado, contrato formal, trade-offs).
   - **ADR-010** — Manifesto de MFEs + resolução de dependências (estados, ordenação topológica, validação fail-fast).
-  - **ADR-011** — Deploy independente via S3/LocalStack (buckets, lib mode, script de deploy).
+  - **ADR-011** — Deploy independente via S3/LocalStack (buckets, lib mode, script de deploy) **e a decisão de repo único didático vs. repos isolados em produção** (a limitação assumida em §3 e sua recomendação).
 - Atualizar `docs/architecture/README.md` (mapa de módulos + diagramas C4) e a tabela de ADRs.
 
 ## 12. Decomposição em specs/planos
@@ -191,5 +194,5 @@ Sequência no boot (estende `src/main.tsx`):
 - [ ] Erro/ausência de um MFE não derruba o shell (error boundary).
 - [ ] Estado `maintenance` exibe aviso; `disabled` oculta do menu.
 - [ ] `mfe-endereco` faz chamadas HTTP reais ao `apiUrl` (respondidas por MSW), com fluxo de 401 → `onUnauthorized`.
-- [ ] Vitest ≥ 80% de cobertura em cada repo; Playwright cobre o fluxo feliz + isolamento de falha.
+- [ ] Vitest ≥ 80% de cobertura em cada projeto (shell e `mfes/endereco`); Playwright cobre o fluxo feliz + isolamento de falha.
 - [ ] READMEs e ADR-008..011 escritos e linkados aos arquivos.
