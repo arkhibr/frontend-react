@@ -1,5 +1,11 @@
 import { readFileSync } from 'node:fs'
-import { S3Client, CreateBucketCommand, PutObjectCommand, PutBucketPolicyCommand } from '@aws-sdk/client-s3'
+import {
+  S3Client,
+  CreateBucketCommand,
+  PutObjectCommand,
+  PutBucketPolicyCommand,
+  PutBucketCorsCommand,
+} from '@aws-sdk/client-s3'
 
 const BUCKET = 'mfe-endereco'
 const ENDPOINT = process.env.S3_ENDPOINT ?? 'http://localhost:4566'
@@ -25,6 +31,13 @@ async function ensureBucket() {
       Version: '2012-10-17',
       Statement: [{ Effect: 'Allow', Principal: '*', Action: 's3:GetObject', Resource: `arn:aws:s3:::${BUCKET}/*` }],
     }),
+  }))
+  // O shell faz import() ESM cross-origin do bundle; o navegador exige CORS.
+  await s3.send(new PutBucketCorsCommand({
+    Bucket: BUCKET,
+    CORSConfiguration: {
+      CORSRules: [{ AllowedOrigins: ['*'], AllowedMethods: ['GET'], AllowedHeaders: ['*'] }],
+    },
   }))
 }
 
