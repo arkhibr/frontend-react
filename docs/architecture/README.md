@@ -26,15 +26,27 @@ graph LR
 
     subgraph infra["Infraestrutura de produção"]
         nginx["Nginx\nservidor HTTP estático"]
-        spa["Portal Web\nReact 19 + TypeScript\nexecutado no navegador"]
+        shell["Shell nuclear\nReact 19 + TypeScript\nexecutado no navegador"]
+        mfe["MFE autônomo\nbundle ESM (ex: endereço)"]
+    end
+
+    subgraph storage["Object storage (S3 / LocalStack)"]
+        manifest["mfe-manifest.json"]
+        bundle["bundles dos MFEs\n(um bucket por MFE)"]
     end
 
     api["API de Clientes\nPython"]
 
     user -->|"HTTPS"| nginx
-    nginx -->|"HTML + JS + CSS"| spa
-    spa -->|"HTTPS + Bearer JWT"| api
+    nginx -->|"HTML + JS + CSS"| shell
+    shell -->|"fetch manifesto"| manifest
+    shell -->|"import() em runtime"| bundle
+    bundle -->|"monta na rota"| mfe
+    shell -->|"HTTPS + Bearer JWT"| api
+    mfe -->|"HTTPS + Bearer JWT"| api
 ```
+
+Os microfrontends são carregados **dinamicamente em runtime** a partir de buckets S3, sob o contrato `mount`/`unmount` (ver ADR-008..011 e [`src/app/mfe/`](../../src/app/mfe/README.md)).
 
 ## Mapa de Módulos
 
@@ -42,6 +54,8 @@ graph LR
 |--------|-----------------|--------------|
 | `src/app/` | Camada App do FSD: inicialização da aplicação, providers globais, roteamento e estilos | [README](../../src/app/README.md) |
 | `src/app/router/` | Roteamento declarativo com guards de autenticação e carregamento preguiçoso de páginas | [README](../../src/app/router/README.md) |
+| `src/app/mfe/` | Runtime de microfrontends: manifesto, resolução de dependências, carregamento ESM e montagem isolada | [README](../../src/app/mfe/README.md) |
+| `src/app/layout/` | Layout do shell com navegação dinâmica derivada do manifesto de MFEs | — |
 | `src/shared/api/` | Cliente HTTP com autoinjeção de token Bearer e tratamento centralizado de erro 401 | [README](../../src/shared/api/README.md) |
 | `src/shared/auth/` | Infraestrutura de autenticação: armazenamento, análise e monitoramento de token JWT | [README](../../src/shared/auth/README.md) |
 | `src/shared/lib/store/` | Gerenciamento de estado Redux com três fatias: auth, ui e session | [README](../../src/shared/lib/store/README.md) |
@@ -58,3 +72,7 @@ graph LR
 | [ADR-005](adrs/ADR-005-testes.md) | Tática de testes | Proposed |
 | [ADR-006](adrs/ADR-006-conteinizacao.md) | Tática de conteinerização | Proposed |
 | [ADR-007](adrs/ADR-007-imposicao-fronteiras-arquiteturais.md) | Tática de imposição de fronteiras arquiteturais | Proposed |
+| [ADR-008](adrs/ADR-008-microfrontends-dinamicos.md) | Arquitetura de microfrontends dinâmicos | Proposed |
+| [ADR-009](adrs/ADR-009-contrato-mount-unmount.md) | Contrato `mount`/`unmount` entre shell e MFEs | Proposed |
+| [ADR-010](adrs/ADR-010-manifesto-e-dependencias.md) | Manifesto de MFEs e resolução de dependências | Proposed |
+| [ADR-011](adrs/ADR-011-deploy-s3-localstack.md) | Build independente e deploy de MFEs em S3 (LocalStack) | Proposed |
