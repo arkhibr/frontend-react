@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { tokenStorage } from '@/shared/auth/tokenStorage'
-import { parseToken, type JwtPayload } from '@/shared/auth/tokenParser'
+import { parseToken, isTokenExpired, type JwtPayload } from '@/shared/auth/tokenParser'
 
 type AuthState = {
   token: string | null
@@ -8,11 +8,21 @@ type AuthState = {
   isAuthenticated: boolean
 }
 
-const initialState: AuthState = {
-  token: null,
-  user: null,
-  isAuthenticated: false,
+// Hidrata o estado a partir do token persistido no sessionStorage, para que
+// uma sessão ativa sobreviva a um reload sem novo login.
+function hydrateInitialState(): AuthState {
+  const token = tokenStorage.get()
+  if (token && !isTokenExpired(token)) {
+    try {
+      return { token, user: parseToken(token), isAuthenticated: true }
+    } catch {
+      tokenStorage.clear()
+    }
+  }
+  return { token: null, user: null, isAuthenticated: false }
 }
+
+const initialState: AuthState = hydrateInitialState()
 
 export const authSlice = createSlice({
   name: 'auth',

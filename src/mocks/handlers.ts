@@ -4,9 +4,13 @@ import { TEST_TOKEN } from '@/shared/auth/testToken'
 export { TEST_TOKEN }
 
 export const handlers = [
-  http.post('/auth/token', () =>
-    HttpResponse.json({ access_token: TEST_TOKEN }),
-  ),
+  http.post('/auth/token', async ({ request }) => {
+    const { email, senha } = (await request.json()) as { email?: string; senha?: string }
+    if (email === 'usuario@teste.com' && senha === 'senha123') {
+      return HttpResponse.json({ access_token: TEST_TOKEN })
+    }
+    return new HttpResponse(null, { status: 401 })
+  }),
   http.get('/usuario/endereco', () =>
     HttpResponse.json({ cep: '01001000', logradouro: 'Praça da Sé', numero: '1' }),
   ),
