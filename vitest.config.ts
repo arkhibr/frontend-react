@@ -14,7 +14,38 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov'],
       include: ['src/**'],
-      exclude: ['src/mocks/**', 'src/test-setup.ts', 'src/**/*.d.ts'],
+      exclude: [
+        // Arquivos globais de setup/tipos
+        'src/mocks/**',
+        'src/test-setup.ts',
+        'src/**/*.d.ts',
+        'src/vite-env.d.ts',
+        // Boot/entry — exercido somente por E2E (Playwright)
+        'src/main.tsx',
+        // Composição de rotas e providers — exercido somente por E2E
+        'src/app/router/**',
+        'src/app/providers/**',
+        // Páginas — exercidas somente por E2E
+        'src/pages/**',
+        // Estilos globais
+        'src/app/styles/**',
+        // loadMfeModule: a linha testável (assertMfeModule) já é coberta via
+        // loadMfeModule.test.ts; o dynamic import() real é intrinsecamente
+        // não-testável em unidade
+        'src/app/mfe/loadMfeModule.ts',
+        // Singletons de configuração/composição sem lógica testável em unidade
+        'src/shared/lib/featureFlags.ts',
+        'src/shared/lib/queryClient.ts',
+        'src/shared/lib/store/index.ts',
+        // sessionMonitor usa setInterval + window events — coberto por E2E
+        'src/shared/auth/sessionMonitor.ts',
+      ],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
+      },
     },
   },
   resolve: {

@@ -4,6 +4,7 @@ import { Provider } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
 import { authSlice } from '@/shared/lib/store/authSlice'
 import { MfeHost } from '../MfeHost'
+import { loadMfeModule } from '../loadMfeModule'
 import type { MfeEntry } from '../types'
 
 const mount = vi.fn()
@@ -26,6 +27,7 @@ function renderHost(e: MfeEntry) {
 beforeEach(() => {
   mount.mockClear()
   unmount.mockClear()
+  vi.mocked(loadMfeModule).mockResolvedValue({ mount, unmount })
 })
 
 describe('MfeHost', () => {
@@ -49,5 +51,12 @@ describe('MfeHost', () => {
     renderHost({ ...entry, state: 'maintenance' })
     expect(screen.getByRole('status')).toHaveTextContent(/manuten/i)
     expect(mount).not.toHaveBeenCalled()
+  })
+
+  it('exibe o aviso do error boundary quando o carregamento falha', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.mocked(loadMfeModule).mockRejectedValueOnce(new Error('404'))
+    renderHost(entry)
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/indisponível/i))
   })
 })

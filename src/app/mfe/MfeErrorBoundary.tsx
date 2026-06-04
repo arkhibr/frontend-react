@@ -1,4 +1,4 @@
-import { Component, type ReactNode } from 'react'
+import { Component, type ErrorInfo, type ReactNode } from 'react'
 
 type Props = { mfeName: string; children: ReactNode }
 type State = { hasError: boolean }
@@ -10,8 +10,8 @@ export class MfeErrorBoundary extends Component<Props, State> {
     return { hasError: true }
   }
 
-  componentDidCatch(error: unknown) {
-    console.error(`[mfe] falha no microfrontend "${this.props.mfeName}":`, error)
+  componentDidCatch(error: unknown, info: ErrorInfo) {
+    console.error(`[mfe] falha no microfrontend "${this.props.mfeName}":`, error, info.componentStack)
   }
 
   render() {
