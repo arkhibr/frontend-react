@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test'
+import { signIn } from './support/auth'
 
 // Prova de extensibilidade: o MFE de empréstimo foi adicionado apenas via
 // manifesto (+ mock dev), sem tocar o shell nem o MFE de endereço. Aqui ele
 // carrega dinamicamente do bucket S3 e funciona ponta a ponta.
 test('carrega o MFE de empréstimo dinamicamente e registra a simulação', async ({ page }) => {
-  await page.goto('/login')
-  await page.getByRole('button', { name: 'Entrar' }).click()
+  await signIn(page)
   await expect(page).toHaveURL(/\/dashboard/)
 
   await page.getByRole('link', { name: /Simulação de Empréstimo/ }).click()
@@ -21,8 +21,7 @@ test('carrega o MFE de empréstimo dinamicamente e registra a simulação', asyn
 })
 
 test('os dois MFEs aparecem no menu do shell', async ({ page }) => {
-  await page.goto('/login')
-  await page.getByRole('button', { name: 'Entrar' }).click()
+  await signIn(page)
   await expect(page.getByRole('link', { name: /Alteração de Endereço/ })).toBeVisible()
   await expect(page.getByRole('link', { name: /Simulação de Empréstimo/ })).toBeVisible()
 })
