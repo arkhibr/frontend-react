@@ -2,7 +2,7 @@
 
 **Shell nuclear de uma plataforma de microfrontends dinâmicos.** Uma SPA (Single-Page Application) em React 19 + TypeScript que, além de hospedar suas próprias telas (login, dashboard), carrega **microfrontends (MFEs) autônomos em tempo de execução** a partir de buckets S3 (Amazon Simple Storage Service), sob um contrato `mount`/`unmount`. A estrutura interna segue **Feature-Sliced Design (FSD)**, com fronteiras de camada verificadas automaticamente pelo ESLint.
 
-> 📐 **Documentação arquitetural completa:** [`docs/architecture/README.md`](docs/architecture/README.md) — diagramas C4 (modelo de arquitetura em quatro níveis: Context, Container, Component, Code), mapa de módulos e as 11 ADRs (Architecture Decision Record — registro de decisão de arquitetura).
+> 📐 **Documentação arquitetural completa:** [`docs/architecture/README.md`](docs/architecture/README.md) — diagramas C4 (modelo de arquitetura em quatro níveis: Context, Container, Component, Code), mapa de módulos e as 13 ADRs (Architecture Decision Record — registro de decisão de arquitetura).
 
 ---
 
@@ -88,6 +88,7 @@ Além disso, o padrão de organização de pastas chamado FSD (Feature Sliced De
 | Mocks (MSW) | Back-end simulado | [`src/mocks/README.md`](src/mocks/README.md) |
 | MFE de endereço | MFE de exemplo, ponta a ponta | [`mfes/endereco/README.md`](mfes/endereco/README.md) |
 | Infra local | LocalStack S3 | [`infra/README.md`](infra/README.md) |
+| Segurança | CSP, cabeçalhos, Trusted Types, rollout | [`SECURITY.md`](SECURITY.md) |
 
 
 ## Pilha Tecnológica Adotada
@@ -97,7 +98,7 @@ Além disso, o padrão de organização de pastas chamado FSD (Feature Sliced De
 
 ## Decisões arquiteturais (ADRs)
 
-Em [`docs/architecture/adrs/`](docs/architecture/adrs/). As ADRs 008–011 cobrem a plataforma de microfrontends:
+Em [`docs/architecture/adrs/`](docs/architecture/adrs/). As ADRs 008–013 cobrem a plataforma de microfrontends e sua segurança:
 
 | ADR | Decisão |
 |-----|---------|
@@ -112,6 +113,8 @@ Em [`docs/architecture/adrs/`](docs/architecture/adrs/). As ADRs 008–011 cobre
 | [ADR-009](docs/architecture/adrs/ADR-009-contrato-mount-unmount.md) | **Contrato `mount`/`unmount` shell ↔ MFE** |
 | [ADR-010](docs/architecture/adrs/ADR-010-manifesto-e-dependencias.md) | **Manifesto e resolução de dependências** |
 | [ADR-011](docs/architecture/adrs/ADR-011-deploy-s3-localstack.md) | **Build/deploy de MFEs em S3 (LocalStack)** |
+| [ADR-012](docs/architecture/adrs/ADR-012-content-security-policy.md) | **Content Security Policy estrito e baseline de segurança** |
+| [ADR-013](docs/architecture/adrs/ADR-013-trusted-types-e-reporting.md) | **Trusted Types e Reporting API** |
 
 ## Desenvolvimento local
 
@@ -206,7 +209,7 @@ Em dev, `apiUrl` vazio direciona as chamadas ao MSW. Em produção, gere/monte o
 5. Copiar/montar `dist/` no host (wwwroot, container ou CDN — Content Delivery Network)
 6. Configurar `dist/config.json` (`apiUrl`, cores)
 7. Publicar `dist/mfe-manifest.json` com as entradas dos MFEs de produção
-8. Validar CSP (Content Security Policy) e **CORS** dos buckets de MFE (o `import()` é cross-origin)
+8. Validar CSP (Content Security Policy) e **CORS** dos buckets de MFE (o `import()` é cross-origin) — seguir o **playbook de rollout** em [`SECURITY.md`](SECURITY.md) (Report-Only → analisar → enforce); conferir `CSP_CONNECT_SRC`/`CSP_REPORT_URI` do ambiente
 9. Smoke test funcional (login → dashboard → MFE)
 
 ### Cada MFE
