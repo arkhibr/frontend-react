@@ -36,6 +36,13 @@ prepare()
     )
   })
   .catch((err) => {
-    document.getElementById('root')!.innerHTML =
-      `<pre style="padding:2rem;color:#b91c1c;font-family:monospace">Falha ao iniciar o portal:\n${String(err)}</pre>`
+    // Constrói o fallback de erro via API do DOM (sem innerHTML): evita o sink
+    // guardado por Trusted Types — quando o policy virar enforcement, innerHTML
+    // lançaria exceção justamente ao tentar exibir o erro de boot. Ver SECURITY.md.
+    const pre = document.createElement('pre')
+    pre.style.padding = '2rem'
+    pre.style.color = '#b91c1c'
+    pre.style.fontFamily = 'monospace'
+    pre.textContent = `Falha ao iniciar o portal:\n${String(err)}`
+    document.getElementById('root')!.replaceChildren(pre)
   })

@@ -343,6 +343,16 @@ pode quebrar, conforme o
   Integrity (validação por hash do MFE antes de executar) é uma defesa adicional
   de supply-chain ainda não implementada, dependente de pipeline que gere e
   publique os hashes dos artefatos.
+- **O CSP de enforcement (produção) não é coberto por teste automatizado.** O
+  E2E (`tests/e2e/csp.spec.ts`) valida apenas o header Report-Only do servidor de
+  dev (Vite). A substituição do nonce via `sub_filter`, o envsubst e o header de
+  enforcement do Nginx são exercitados apenas pelo **smoke test manual do
+  contêiner** (Seção 8 / passo de verificação) — a "máquina de nonce" do Nginx
+  fica sem cobertura de regressão automatizada.
+- **`report-to` sem fallback `report-uri`.** Navegadores que não implementam a
+  Reporting API (`report-to`) não enviarão violações. É aceitável para a stack
+  moderna desta POC; um `report-uri` legado poderia ser adicionado caso seja
+  preciso cobrir navegadores antigos.
 
 ---
 

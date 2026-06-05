@@ -31,3 +31,5 @@ A compilação usa múltiplos estágios: o primeiro estágio usa Node para compi
 - A imagem de produção é baseada em `nginx:alpine` — pequena e auditável
 - Variáveis de ambiente (ex: `VITE_API_BASE_URL`) devem ser injetadas em tempo de **compilação**, não de execução — valores padrão ficam no `nginx.conf` ou em scripts de inicialização do contêiner
 - O `nginx.conf` deve ser revisado ao adicionar rotas que não sejam SPA (ex: endpoints de saúde)
+
+> **Atualização (ADR-012):** a configuração de Nginx passou a ser um **template** (`nginx.conf.template` em `/etc/nginx/templates/`) com **envsubst em tempo de execução**, restrito às variáveis `CSP_*` via `NGINX_ENVSUBST_FILTER`. Isso refina (não revoga) esta ADR: as variáveis de *build* do front-end seguem injetadas em compilação; apenas os parâmetros de CSP (Content Security Policy) por ambiente (`CSP_CONNECT_SRC`, `CSP_REPORT_URI`) são resolvidos no boot do contêiner. Ver [ADR-012](ADR-012-content-security-policy.md) e [`SECURITY.md`](../../../SECURITY.md).
