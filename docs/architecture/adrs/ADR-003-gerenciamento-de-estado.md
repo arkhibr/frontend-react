@@ -15,7 +15,7 @@ O projeto precisava de uma solução que tratasse os dois tipos de estado com as
 - **Separação de responsabilidades**: estado do servidor e estado do cliente têm ciclos de vida distintos
 - **Redução de código repetitivo**: lógica de carregamento, erro e revalidação não deve ser implementada manualmente em cada componente
 - **Previsibilidade**: mutações de estado do cliente devem ser rastreáveis e inspecionáveis em ferramentas de desenvolvimento
-- **Integração com FSD**: solução deve funcionar dentro das restrições de camada da ADR-002
+- **Integração com FSD (Feature-Sliced Design)**: solução deve funcionar dentro das restrições de camada da ADR-002
 
 ### Aderência a Princípios
 
@@ -68,7 +68,7 @@ Usar apenas `useState` e `useEffect` para todo o estado.
 
 ### Y-Statement
 
-> **No contexto de** uma SPA com estado de servidor (dados remotos) e estado de cliente (auth, UI, sessão),
+> **No contexto de** uma SPA (Single-Page Application) com estado de servidor (dados remotos) e estado de cliente (auth, UI, sessão),
 > **enfrentando** o problema de ciclos de vida distintos sendo tratados pela mesma ferramenta,
 > **decidimos por** Redux Toolkit para estado do cliente e React Query para estado do servidor,
 > **para alcançar** separação de responsabilidades e redução de código repetitivo de carregamento,

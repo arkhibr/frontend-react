@@ -8,7 +8,7 @@ O projeto necessita de uma estratégia de testes que cubra três níveis: unitá
 
 ## Decisão
 
-Adotar **Vitest + Playwright + MSW** como conjunto de testes:
+Adotar **Vitest + Playwright + MSW (Mock Service Worker)** como conjunto de testes:
 
 - **Vitest**: testes unitários e de integração, executados no mesmo processo do Vite
 - **Playwright**: testes de ponta a ponta em navegadores reais
@@ -17,7 +17,7 @@ Adotar **Vitest + Playwright + MSW** como conjunto de testes:
 ## Opções avaliadas
 
 ### Opção 1: Vitest + Playwright + MSW (escolhida)
-- **Prós**: Vitest roda sem transpilação extra (suporte nativo a ESM e TypeScript); Playwright oferece cobertura multinavegador real; MSW intercepta na camada de rede — os testes exercitam o mesmo código de produção com respostas controladas
+- **Prós**: Vitest roda sem transpilação extra (suporte nativo a ESM — ECMAScript Modules, os módulos nativos do JavaScript — e TypeScript); Playwright oferece cobertura multinavegador real; MSW intercepta na camada de rede — os testes exercitam o mesmo código de produção com respostas controladas
 - **Contras**: três ferramentas distintas para aprender; Playwright exige instalação de binários de navegadores
 
 ### Opção 2: Jest + Cypress + MSW

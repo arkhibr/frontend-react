@@ -2,7 +2,7 @@
 
 ## Responsabilidade
 
-Configuração declarativa do roteamento da SPA com React Router v7. Define as rotas disponíveis, associa cada rota ao seu guard de autenticação e implementa carregamento preguiçoso de páginas. Não contém lógica de negócio — apenas estrutura de navegação e proteção de rotas.
+Configuração declarativa do roteamento da SPA (Single-Page Application) com React Router v7. Define as rotas disponíveis, associa cada rota ao seu guard de autenticação e implementa carregamento preguiçoso de páginas. Não contém lógica de negócio — apenas estrutura de navegação e proteção de rotas.
 
 ## Estrutura
 

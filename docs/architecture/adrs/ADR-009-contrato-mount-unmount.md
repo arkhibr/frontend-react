@@ -31,7 +31,7 @@ A escolha do mecanismo é a decisão arquitetural mais consequente da plataforma
 
 ## Opções Consideradas
 
-### Opção 1: Contrato `mount`/`unmount` via Vite lib mode + `import()` ESM nativo (escolhida)
+### Opção 1: Contrato `mount`/`unmount` via Vite lib mode + `import()` ESM (ECMAScript Modules — módulos nativos do JavaScript) nativo (escolhida)
 
 Cada MFE é buildado em Vite **lib mode** como um módulo ESM único que exporta duas funções:
 

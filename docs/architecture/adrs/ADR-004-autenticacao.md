@@ -2,7 +2,7 @@
 
 ## Contexto e Problema
 
-O Portal Web utiliza autenticação baseada em JWT emitido pela API de Clientes. O token precisa ser armazenado no navegador entre requisições, ter sua validade verificada proativamente e ser invalidado quando o servidor rejeitar uma requisição por sessão expirada. A escolha do mecanismo de armazenamento impacta diretamente o perfil de segurança da aplicação.
+O Portal Web utiliza autenticação baseada em JWT (JSON Web Token) emitido pela API de Clientes. O token precisa ser armazenado no navegador entre requisições, ter sua validade verificada proativamente e ser invalidado quando o servidor rejeitar uma requisição por sessão expirada. A escolha do mecanismo de armazenamento impacta diretamente o perfil de segurança da aplicação.
 
 **Pergunta-problema:** Onde e como armazenar o token JWT no navegador de forma que o perfil de segurança seja aceitável sem exigir mudanças no back-end?
 
@@ -50,7 +50,7 @@ Token armazenado em `localStorage` — persiste entre sessões.
 Token armazenado em cookie `httpOnly` gerenciado pelo back-end.
 
 - ✅ **Prós**: inacessível via JavaScript — melhor perfil de segurança contra XSS; renovação automática possível via cookie de refresh
-- ❌ **Contras**: exige mudança no back-end (configuração de CORS com `credentials: include`, emissão de cookie, rota de refresh); fora do escopo desta fase do projeto
+- ❌ **Contras**: exige mudança no back-end (configuração de CORS — Cross-Origin Resource Sharing — com `credentials: include`, emissão de cookie, rota de refresh); fora do escopo desta fase do projeto
 
 ### Opção 4: Não fazer nada (baseline)
 
@@ -65,7 +65,7 @@ Armazenar token apenas em memória (`useState`).
 
 ### Y-Statement
 
-> **No contexto de** autenticação JWT em uma SPA sem mudanças no back-end,
+> **No contexto de** autenticação JWT em uma SPA (Single-Page Application) sem mudanças no back-end,
 > **enfrentando** o trade-off entre segurança de armazenamento e usabilidade sem persistência via cookie httpOnly,
 > **decidimos por** `sessionStorage` com monitoramento proativo de expiração,
 > **para alcançar** isolamento por aba e detecção dupla de sessão expirada,

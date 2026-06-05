@@ -1,6 +1,6 @@
 # infra
 
-Orquestração local da plataforma de microfrontends (LocalStack S3).
+Orquestração local da plataforma de microfrontends (S3 — Amazon Simple Storage Service — via LocalStack).
 
 ## Subir o ambiente
 ```bash

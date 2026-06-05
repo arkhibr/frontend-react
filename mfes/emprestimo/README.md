@@ -1,7 +1,7 @@
 # mfe-emprestimo
 
-Microfrontend autônomo de simulação de empréstimo. Buildado em Vite lib mode (ESM único),
-deployado num bucket S3 (LocalStack) e carregado pelo shell via `import()`.
+Microfrontend autônomo de simulação de empréstimo. Buildado em Vite lib mode (bundle ESM — ECMAScript Modules, os módulos nativos do JavaScript — único),
+deployado num bucket S3 (Amazon Simple Storage Service) no LocalStack e carregado pelo shell via `import()`.
 
 No manifesto, declara `dependsOn: ["endereco"]` — apenas para exercitar a **ordem de carga**
 (ordenação topológica do shell). MFEs não se comunicam entre si; falam só com o back-end.

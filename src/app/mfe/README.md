@@ -1,6 +1,6 @@
 # Runtime de Microfrontends (camada `app`)
 
-Motor que carrega MFEs autônomos a partir de buckets S3 em runtime. Ver ADR-008/009/010.
+Motor que carrega MFEs (microfrontends) autônomos a partir de buckets S3 (Amazon Simple Storage Service) em runtime. Ver ADR-008/009/010.
 
 | Arquivo | Responsabilidade | Decisão |
 |---------|------------------|---------|
@@ -8,7 +8,7 @@ Motor que carrega MFEs autônomos a partir de buckets S3 em runtime. Ver ADR-008
 | [`manifest.ts`](manifest.ts) | Validação fail-fast do manifesto | ADR-010 |
 | [`dependencyResolver.ts`](dependencyResolver.ts) | Ordenação topológica + detecção de ciclo | ADR-010 |
 | [`loadManifest.ts`](loadManifest.ts) | Carrega `public/mfe-manifest.json` via fetch | ADR-010 |
-| [`loadMfeModule.ts`](loadMfeModule.ts) | `import()` ESM do bundle + validação do contrato | ADR-009 |
+| [`loadMfeModule.ts`](loadMfeModule.ts) | `import()` ESM (ECMAScript Modules — módulos nativos do JavaScript) do bundle + validação do contrato | ADR-009 |
 | [`MfeHost.tsx`](MfeHost.tsx) | Monta/desmonta o MFE numa `<div>`; injeta o contexto | ADR-009 |
 | [`MfeErrorBoundary.tsx`](MfeErrorBoundary.tsx) | Isola falhas de um MFE do shell | ADR-008 |
 

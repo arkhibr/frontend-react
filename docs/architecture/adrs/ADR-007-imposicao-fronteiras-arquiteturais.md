@@ -2,7 +2,7 @@
 
 ## Contexto
 
-A metodologia FSD (ADR-002) define regras explícitas de dependência entre camadas. Sem verificação automatizada, essas regras são apenas convenção documentada — degradam silenciosamente sob pressão de entrega. O projeto necessita de um mecanismo que detecte violações antes do merge e forneça feedback imediato ao desenvolvedor.
+A metodologia FSD (Feature-Sliced Design) (ADR-002) define regras explícitas de dependência entre camadas. Sem verificação automatizada, essas regras são apenas convenção documentada — degradam silenciosamente sob pressão de entrega. O projeto necessita de um mecanismo que detecte violações antes do merge e forneça feedback imediato ao desenvolvedor.
 
 **Referência:** https://github.com/javierbrea/eslint-plugin-boundaries
 

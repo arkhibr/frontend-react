@@ -2,7 +2,7 @@
 
 ## Responsabilidade
 
-Camada de inicialização da aplicação no modelo FSD. Compõe os providers globais, configura o roteador e define os estilos base. Não contém lógica de negócio — apenas orquestração de infraestrutura de primeiro nível.
+Camada de inicialização da aplicação no modelo FSD (Feature-Sliced Design). Compõe os providers globais, configura o roteador e define os estilos base. Não contém lógica de negócio — apenas orquestração de infraestrutura de primeiro nível.
 
 ## Estrutura
 

@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O **Portal Web** é uma aplicação de página única (SPA) construída com React 19 e TypeScript, compilada via Vite e servida em produção pelo Nginx. Consome a **API de Clientes** (back-end Python) via HTTPS com autenticação JWT. A estrutura interna segue a metodologia **Feature-Sliced Design (FSD)**, com camadas de dependência estritas verificadas automaticamente pelo ESLint na esteira de CI.
+O **Portal Web** é uma aplicação de página única (SPA) construída com React 19 e TypeScript, compilada via Vite e servida em produção pelo Nginx. Consome a **API de Clientes** (back-end Python) via HTTPS com autenticação JWT (JSON Web Token). A estrutura interna segue a metodologia **Feature-Sliced Design (FSD)**, com camadas de dependência estritas verificadas automaticamente pelo ESLint na esteira de CI.
 
 ## Diagrama de Contexto
 
@@ -46,7 +46,7 @@ graph LR
     mfe -->|"HTTPS + Bearer JWT"| api
 ```
 
-Os microfrontends são carregados **dinamicamente em runtime** a partir de buckets S3, sob o contrato `mount`/`unmount` (ver ADR-008..011 e [`src/app/mfe/`](../../src/app/mfe/README.md)).
+Os microfrontends são carregados **dinamicamente em runtime** a partir de buckets S3 (Amazon Simple Storage Service), sob o contrato `mount`/`unmount` (ver ADR-008..011 e [`src/app/mfe/`](../../src/app/mfe/README.md)).
 
 ## Mapa de Módulos
 
@@ -54,14 +54,14 @@ Os microfrontends são carregados **dinamicamente em runtime** a partir de bucke
 |--------|-----------------|--------------|
 | `src/app/` | Camada App do FSD: inicialização da aplicação, providers globais, roteamento e estilos | [README](../../src/app/README.md) |
 | `src/app/router/` | Roteamento declarativo com guards de autenticação e carregamento preguiçoso de páginas | [README](../../src/app/router/README.md) |
-| `src/app/mfe/` | Runtime de microfrontends: manifesto, resolução de dependências, carregamento ESM e montagem isolada | [README](../../src/app/mfe/README.md) |
-| `src/app/layout/` | Layout do shell com navegação dinâmica derivada do manifesto de MFEs | — |
+| `src/app/mfe/` | Runtime de microfrontends: manifesto, resolução de dependências, carregamento ESM (ECMAScript Modules — módulos nativos do JavaScript) e montagem isolada | [README](../../src/app/mfe/README.md) |
+| `src/app/layout/` | Layout do shell com navegação dinâmica derivada do manifesto de MFEs (microfrontend) | — |
 | `src/shared/api/` | Cliente HTTP com autoinjeção de token Bearer e tratamento centralizado de erro 401 | [README](../../src/shared/api/README.md) |
 | `src/shared/auth/` | Infraestrutura de autenticação: armazenamento, análise e monitoramento de token JWT | [README](../../src/shared/auth/README.md) |
 | `src/shared/lib/store/` | Gerenciamento de estado Redux com três fatias: auth, ui e session | [README](../../src/shared/lib/store/README.md) |
-| `src/mocks/` | Servidor de simulação MSW para testes automatizados e desenvolvimento local | [README](../../src/mocks/README.md) |
+| `src/mocks/` | Servidor de simulação MSW (Mock Service Worker) para testes automatizados e desenvolvimento local | [README](../../src/mocks/README.md) |
 
-## Decisões Arquiteturais (ADRs)
+## Decisões Arquiteturais (ADRs — Architecture Decision Record, registro de decisão de arquitetura)
 
 | ID | Decisão | Status |
 |----|---------|--------|

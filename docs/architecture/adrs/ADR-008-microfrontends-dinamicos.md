@@ -2,9 +2,9 @@
 
 ## Contexto e Problema
 
-O Portal Web nasceu como uma SPA monolítica (ADR-001/002). Conforme o produto cresce, múltiplas equipes precisam entregar funcionalidades de forma independente — sem que um deploy de uma área quebre ou bloqueie as demais, e sem recompilar o portal inteiro a cada mudança de um módulo de negócio.
+O Portal Web nasceu como uma SPA (Single-Page Application) monolítica (ADR-001/002). Conforme o produto cresce, múltiplas equipes precisam entregar funcionalidades de forma independente — sem que um deploy de uma área quebre ou bloqueie as demais, e sem recompilar o portal inteiro a cada mudança de um módulo de negócio.
 
-A pergunta não é "como dividir o código em pastas" (isso é FSD, ADR-002), mas "como permitir que unidades de funcionalidade sejam **construídas, versionadas e implantadas de forma autônoma** e carregadas pelo portal **em tempo de execução**, sem acoplamento de build".
+A pergunta não é "como dividir o código em pastas" (isso é FSD (Feature-Sliced Design), ADR-002), mas "como permitir que unidades de funcionalidade sejam **construídas, versionadas e implantadas de forma autônoma** e carregadas pelo portal **em tempo de execução**, sem acoplamento de build".
 
 **Pergunta-problema:** Como transformar o portal em uma plataforma capaz de carregar funcionalidades autônomas (microfrontends) em runtime, isolando falhas e mantendo o shell estável?
 
@@ -33,9 +33,9 @@ A pergunta não é "como dividir o código em pastas" (isso é FSD, ADR-002), ma
 
 ## Opções Consideradas
 
-### Opção 1: Shell nuclear + MFEs autônomos carregados em runtime de S3 (escolhida)
+### Opção 1: Shell nuclear + MFEs autônomos carregados em runtime de S3 (Amazon Simple Storage Service) (escolhida)
 
-O shell carrega um `mfe-manifest.json`, valida-o, resolve a ordem de dependências e renderiza rotas dinâmicas. Cada rota monta um MFE via `import()` ESM de um bundle hospedado em bucket S3, sob o contrato `mount`/`unmount` (ADR-009). Cada MFE empacota o próprio React e fala apenas com o back-end.
+O shell carrega um `mfe-manifest.json`, valida-o, resolve a ordem de dependências e renderiza rotas dinâmicas. Cada rota monta um MFE via `import()` ESM (ECMAScript Modules — módulos nativos do JavaScript) de um bundle hospedado em bucket S3, sob o contrato `mount`/`unmount` (ADR-009). Cada MFE empacota o próprio React e fala apenas com o back-end.
 
 - ✅ **Prós**: deploy/versão independentes; isolamento de falha; carga sob demanda; shell estável
 - ❌ **Contras**: cada MFE empacota seu React (bundles maiores); contrato precisa ser versionado e respeitado
@@ -126,7 +126,7 @@ graph LR
 ## Validação
 
 - [ ] Adicionar um MFE não altera o código do shell nem de outros MFEs
-- [ ] E2E comprova que o portal sobrevive a um MFE que falha ao carregar
+- [ ] E2E (end-to-end) comprova que o portal sobrevive a um MFE que falha ao carregar
 - [ ] Bundle de MFE é carregado apenas ao acessar sua rota
 
 ## Links

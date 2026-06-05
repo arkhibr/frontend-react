@@ -2,7 +2,7 @@
 
 ## Responsabilidade
 
-Infraestrutura de autenticação baseada em JWT. Gerencia o ciclo de vida do token no navegador: armazenamento isolado por aba, análise do payload, verificação de expiração e monitoramento proativo de sessão. Não contém lógica de UI nem despacha ações Redux diretamente — exceto `sessionMonitor`, que despacha `logout` como efeito colateral da expiração detectada.
+Infraestrutura de autenticação baseada em JWT (JSON Web Token). Gerencia o ciclo de vida do token no navegador: armazenamento isolado por aba, análise do payload, verificação de expiração e monitoramento proativo de sessão. Não contém lógica de UI nem despacha ações Redux diretamente — exceto `sessionMonitor`, que despacha `logout` como efeito colateral da expiração detectada.
 
 ## Estrutura
 

@@ -6,7 +6,7 @@ Aplicações React sem estrutura imposta tendem a organizar o código por tipo t
 
 O projeto precisava de uma estrutura que mantivesse coesão por domínio, definisse regras claras sobre quem pode depender de quem, e fosse verificável automaticamente — não apenas uma convenção documentada.
 
-**Pergunta-problema:** Como organizar o código da SPA de forma que funcionalidades sejam coesas, as dependências sejam unidirecionais e as regras sejam verificadas automaticamente?
+**Pergunta-problema:** Como organizar o código da SPA (Single-Page Application) de forma que funcionalidades sejam coesas, as dependências sejam unidirecionais e as regras sejam verificadas automaticamente?
 
 **Referência primária:** https://medium.com/@dtgasparyan/feature-sliced-design-the-ideal-frontend-architecture-84d701ad44ba
 

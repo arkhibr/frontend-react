@@ -1,7 +1,7 @@
 # mfe-endereco
 
-Microfrontend autônomo de alteração de endereço. Buildado em Vite lib mode (ESM único),
-deployado num bucket S3 (LocalStack) e carregado pelo shell via `import()`.
+Microfrontend autônomo de alteração de endereço. Buildado em Vite lib mode (bundle ESM — ECMAScript Modules, os módulos nativos do JavaScript — único),
+deployado num bucket S3 (Amazon Simple Storage Service) no LocalStack e carregado pelo shell via `import()`.
 
 | Arquivo | Responsabilidade | Decisão |
 |---------|------------------|---------|

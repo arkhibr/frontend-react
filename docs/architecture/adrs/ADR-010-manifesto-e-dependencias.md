@@ -2,7 +2,7 @@
 
 ## Contexto e Problema
 
-O shell precisa de uma fonte de verdade declarativa sobre **quais** MFEs existem, **onde** estão seus bundles, em **qual rota** montam, em **qual estado** se encontram e **de que** dependem. Sem isso, adicionar ou desativar um MFE exigiria alterar código do shell — contrariando a autonomia da ADR-008.
+O shell precisa de uma fonte de verdade declarativa sobre **quais** MFEs (microfrontends) existem, **onde** estão seus bundles, em **qual rota** montam, em **qual estado** se encontram e **de que** dependem. Sem isso, adicionar ou desativar um MFE exigiria alterar código do shell — contrariando a autonomia da ADR-008.
 
 Há ainda a questão de **ordem de carga**: se um MFE depende de outro, o shell precisa garantir uma ordem válida e detectar dependências circulares antes de tentar montar qualquer coisa.
 

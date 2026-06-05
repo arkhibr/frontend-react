@@ -2,7 +2,7 @@
 
 ## Contexto
 
-O Portal Web é uma SPA compilada em arquivos estáticos (HTML, JS, CSS). Em produção, esses arquivos precisam ser servidos com eficiência, suportando SPA routing e executando em ambiente controlado e reproduzível. A infraestrutura de destino exige contêineres — o que descarta opções de hospedagem gerenciada como Vercel ou Netlify.
+O Portal Web é uma SPA (Single-Page Application) compilada em arquivos estáticos (HTML, JS, CSS). Em produção, esses arquivos precisam ser servidos com eficiência, suportando SPA routing e executando em ambiente controlado e reproduzível. A infraestrutura de destino exige contêineres — o que descarta opções de hospedagem gerenciada como Vercel ou Netlify.
 
 **Referência:** https://nginx.org/en/docs/http/ngx_http_core_module.html#try_files
 

@@ -2,7 +2,7 @@
 
 ## Contexto e Problema
 
-A ADR-008/009 decidiram que cada MFE é um bundle ESM autônomo carregado em runtime. Falta definir **como** esse bundle é construído de forma independente, **onde** é hospedado e por **qual** processo é publicado — e, criticamente, **qual a topologia de repositório** que sustenta a autonomia de entrega.
+A ADR-008/009 decidiram que cada MFE é um bundle ESM (ECMAScript Modules — módulos nativos do JavaScript) autônomo carregado em runtime. Falta definir **como** esse bundle é construído de forma independente, **onde** é hospedado e por **qual** processo é publicado — e, criticamente, **qual a topologia de repositório** que sustenta a autonomia de entrega.
 
 **Pergunta-problema:** Como construir, hospedar e publicar cada MFE de forma independente, e qual topologia de repositório adotar para microfrontends?
 
@@ -11,7 +11,7 @@ A ADR-008/009 decidiram que cada MFE é um bundle ESM autônomo carregado em run
 - **Build independente**: cada MFE compila sem depender do build do shell ou de outros MFEs
 - **Hospedagem estática**: o bundle precisa estar acessível por URL pública para o `import()` do shell
 - **Deploy autônomo**: publicar um MFE não envolve o pipeline do shell
-- **Ambiente local fiel**: simular S3 localmente para desenvolvimento e E2E
+- **Ambiente local fiel**: simular S3 (Amazon Simple Storage Service) localmente para desenvolvimento e E2E (end-to-end)
 
 ### Aderência a Princípios
 
@@ -33,10 +33,10 @@ A ADR-008/009 decidiram que cada MFE é um bundle ESM autônomo carregado em run
 
 #### Opção 1: Vite lib mode → bucket S3 por MFE, via AWS SDK v3 (escolhida)
 
-Cada MFE roda `vite build` em **lib mode** (ESM único), e um script publica `dist/<id>.js` em um bucket S3 dedicado. Em dev, **LocalStack** provê o S3 em `:4566`. O deploy usa o **AWS SDK for JavaScript v3** (cria bucket, define policy pública de leitura e CORS, faz upload).
+Cada MFE roda `vite build` em **lib mode** (ESM único), e um script publica `dist/<id>.js` em um bucket S3 dedicado. Em dev, **LocalStack** provê o S3 em `:4566`. O deploy usa o **AWS SDK for JavaScript v3** (cria bucket, faz upload e define policy pública de leitura e CORS — Cross-Origin Resource Sharing).
 
 - ✅ **Prós**: hospedagem estática barata e escalável; um bucket por MFE reforça o isolamento; AWS SDK e LocalStack são padrão de mercado; CORS configurável para o `import()` cross-origin
-- ❌ **Contras**: exige configurar policy/CORS por bucket; CDN/cache fica fora do escopo desta POC
+- ❌ **Contras**: exige configurar policy/CORS por bucket; CDN (Content Delivery Network)/cache fica fora do escopo desta POC (proof of concept — prova de conceito)
 - 💰 **Custo**: script de deploy por MFE (custo único); infra LocalStack local (zero custo de nuvem)
 
 #### Opção 2: Servir os bundles pelo próprio shell (mesma origem)

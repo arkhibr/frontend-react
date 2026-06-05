@@ -10,7 +10,7 @@ Adotar **React 19 + TypeScript + Vite** como plataforma tecnológica principal.
 
 - **React 19**: biblioteca de UI com modelo de componentes baseado em funções e hooks
 - **TypeScript**: tipagem estática sobre JavaScript, habilitando detecção precoce de erros e melhor suporte de IDE
-- **Vite 8**: ferramenta de compilação com servidor de desenvolvimento via ESM nativo — compilações e recarga em hot reload significativamente mais rápidas que alternativas baseadas em webpack
+- **Vite 8**: ferramenta de compilação com servidor de desenvolvimento via ESM (ECMAScript Modules — módulos nativos do JavaScript) nativo — compilações e recarga em hot reload significativamente mais rápidas que alternativas baseadas em webpack
 
 ## Opções avaliadas
 

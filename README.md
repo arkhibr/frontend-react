@@ -1,8 +1,8 @@
 # Portal Web — `frontend-react`
 
-**Shell nuclear de uma plataforma de microfrontends dinâmicos.** Uma SPA em React 19 + TypeScript que, além de hospedar suas próprias telas (login, dashboard), carrega **microfrontends (MFEs) autônomos em tempo de execução** a partir de buckets S3, sob um contrato `mount`/`unmount`. A estrutura interna segue **Feature-Sliced Design (FSD)**, com fronteiras de camada verificadas automaticamente pelo ESLint.
+**Shell nuclear de uma plataforma de microfrontends dinâmicos.** Uma SPA (Single-Page Application) em React 19 + TypeScript que, além de hospedar suas próprias telas (login, dashboard), carrega **microfrontends (MFEs) autônomos em tempo de execução** a partir de buckets S3 (Amazon Simple Storage Service), sob um contrato `mount`/`unmount`. A estrutura interna segue **Feature-Sliced Design (FSD)**, com fronteiras de camada verificadas automaticamente pelo ESLint.
 
-> 📐 **Documentação arquitetural completa:** [`docs/architecture/README.md`](docs/architecture/README.md) — diagramas C4, mapa de módulos e as 11 ADRs.
+> 📐 **Documentação arquitetural completa:** [`docs/architecture/README.md`](docs/architecture/README.md) — diagramas C4 (modelo de arquitetura em quatro níveis: Context, Container, Component, Code), mapa de módulos e as 11 ADRs (Architecture Decision Record — registro de decisão de arquitetura).
 
 ---
 
@@ -38,12 +38,12 @@ O motor vive na camada `app` do FSD — ver [`src/app/mfe/README.md`](src/app/mf
 1. **Manifesto.** No boot, o shell faz `fetch` de [`public/mfe-manifest.json`](public/mfe-manifest.json) e o valida _fail-fast_ ([`manifest.ts`](src/app/mfe/manifest.ts)). O manifesto declara cada MFE: `id`, `route`, `url` do bundle, `state` (`active` / `maintenance` / `disabled`) e `dependsOn`.
 2. **Ordem de carga.** As dependências são resolvidas por ordenação topológica com detecção de ciclo ([`dependencyResolver.ts`](src/app/mfe/dependencyResolver.ts)).
 3. **Rotas dinâmicas.** O router monta as rotas dos MFEs a partir do manifesto ([`src/app/router/`](src/app/router/README.md)) e a navegação do layout é derivada dele ([`ShellLayout.tsx`](src/app/layout/ShellLayout.tsx)).
-4. **Montagem.** Ao entrar na rota, o [`MfeHost`](src/app/mfe/MfeHost.tsx) faz `import()` ESM do bundle ([`loadMfeModule.ts`](src/app/mfe/loadMfeModule.ts)), valida o contrato e chama `mount(div, ctx)`. Ao sair, `unmount(div)`.
+4. **Montagem.** Ao entrar na rota, o [`MfeHost`](src/app/mfe/MfeHost.tsx) faz `import()` ESM (ECMAScript Modules — módulos nativos do JavaScript) do bundle ([`loadMfeModule.ts`](src/app/mfe/loadMfeModule.ts)), valida o contrato e chama `mount(div, ctx)`. Ao sair, `unmount(div)`.
 5. **Isolamento de falha.** Um MFE que quebra é contido pelo [`MfeErrorBoundary`](src/app/mfe/MfeErrorBoundary.tsx) — o shell e os demais MFEs seguem funcionando.
 
 O **contrato** entre shell e MFE (`mount`/`unmount` + `MfeMountContext`) está em [`src/app/mfe/types.ts`](src/app/mfe/types.ts) e detalhado em [ADR-009](docs/architecture/adrs/ADR-009-contrato-mount-unmount.md).
 
-> ⚠️ Ao criar um novo MFE, atenção a três armadilhas conhecidas do padrão Vite lib mode (`process.env.NODE_ENV`, CORS no bucket, MSW vs Playwright). Estão documentadas em [ADR-011](docs/architecture/adrs/ADR-011-deploy-s3-localstack.md) e no README do MFE de exemplo.
+> ⚠️ Ao criar um novo MFE, atenção a três armadilhas conhecidas do padrão Vite lib mode — `process.env.NODE_ENV`, CORS (Cross-Origin Resource Sharing) no bucket e MSW (Mock Service Worker) vs Playwright. Estão documentadas em [ADR-011](docs/architecture/adrs/ADR-011-deploy-s3-localstack.md) e no README do MFE de exemplo.
 
 ## Estrutura do repositório
 
@@ -83,7 +83,7 @@ Além disso, o padrão de organização de pastas chamado FSD (Feature Sliced De
 | Runtime de MFE | Manifesto, loader ESM, host, error boundary | [`src/app/mfe/README.md`](src/app/mfe/README.md) |
 | Roteamento | Rotas declarativas, guards, lazy loading | [`src/app/router/README.md`](src/app/router/README.md) |
 | Cliente HTTP | Injeção de Bearer e tratamento de 401 | [`src/shared/api/README.md`](src/shared/api/README.md) |
-| Autenticação | Armazenamento, parsing e monitor de JWT | [`src/shared/auth/README.md`](src/shared/auth/README.md) |
+| Autenticação | Armazenamento, parsing e monitor de JWT (JSON Web Token) | [`src/shared/auth/README.md`](src/shared/auth/README.md) |
 | Estado (Redux) | Fatias auth/ui/session | [`src/shared/lib/store/README.md`](src/shared/lib/store/README.md) |
 | Mocks (MSW) | Back-end simulado | [`src/mocks/README.md`](src/mocks/README.md) |
 | MFE de endereço | MFE de exemplo, ponta a ponta | [`mfes/endereco/README.md`](mfes/endereco/README.md) |
@@ -150,7 +150,7 @@ O shell lê [`public/mfe-manifest.json`](public/mfe-manifest.json), encontra a e
 
 | Comando | Descrição |
 |---------|-----------|
-| `npm run dev` | Servidor de desenvolvimento (Vite) com HMR |
+| `npm run dev` | Servidor de desenvolvimento (Vite) com HMR (Hot Module Replacement) |
 | `npm run build` | Compila TS + Vite e gera `dist/` |
 | `npm run preview` | Serve o `dist/` localmente |
 | `npm run test` | Testes unitários e de integração (Vitest) |
@@ -176,7 +176,7 @@ Detalhada em [ADR-005](docs/architecture/adrs/ADR-005-testes.md).
 
 - **Unidade/integração (Vitest):** runtime do MFE, fatias Redux, componentes. O shell roda apenas seus testes — `mfes/**` e `**/node_modules/**` são excluídos.
 - **Cobertura:** o MFE de endereço impõe threshold ≥ 80%.
-- **E2E (Playwright):** [`tests/e2e/`](tests/e2e/). O fluxo de MFE valida tanto a carga dinâmica quanto o isolamento de falha (shell sobrevive a um bundle indisponível).
+- **E2E — testes end-to-end (Playwright):** [`tests/e2e/`](tests/e2e/). O fluxo de MFE valida tanto a carga dinâmica quanto o isolamento de falha (shell sobrevive a um bundle indisponível).
 
 ## Configuração externa e variáveis de ambiente
 
@@ -203,10 +203,10 @@ Em dev, `apiUrl` vazio direciona as chamadas ao MSW. Em produção, gere/monte o
 2. `npm run lint && npm run lint:css` — zero erros
 3. `npm run type-check && npm run test` — tudo verde
 4. `npm run build` — gera `dist/`
-5. Copiar/montar `dist/` no host (wwwroot, CDN, container)
+5. Copiar/montar `dist/` no host (wwwroot, container ou CDN — Content Delivery Network)
 6. Configurar `dist/config.json` (`apiUrl`, cores)
 7. Publicar `dist/mfe-manifest.json` com as entradas dos MFEs de produção
-8. Validar CSP e **CORS** dos buckets de MFE (o `import()` é cross-origin)
+8. Validar CSP (Content Security Policy) e **CORS** dos buckets de MFE (o `import()` é cross-origin)
 9. Smoke test funcional (login → dashboard → MFE)
 
 ### Cada MFE
