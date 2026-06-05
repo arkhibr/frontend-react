@@ -16,8 +16,8 @@ function cspNoncePlugin(): Plugin {
     enforce: 'post',
     transformIndexHtml(html) {
       return html
-        .replace(/<script(?![^>]*\bnonce=)/g, `<script nonce="${CSP_NONCE_PLACEHOLDER}"`)
-        .replace(/<style(?![^>]*\bnonce=)/g, `<style nonce="${CSP_NONCE_PLACEHOLDER}"`)
+        .replace(/<script(?=[\s>])(?![^>]*\bnonce=)/g, `<script nonce="${CSP_NONCE_PLACEHOLDER}"`)
+        .replace(/<style(?=[\s>])(?![^>]*\bnonce=)/g, `<style nonce="${CSP_NONCE_PLACEHOLDER}"`)
     },
   }
 }
