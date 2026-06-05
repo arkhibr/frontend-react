@@ -167,7 +167,7 @@ sequenceDiagram
     Bucket-->>Main: modulo ESM do MFE executa
 
     note over Main,Bucket: Fase 4 — Rede do MFE
-    Main->>Main: MFE chama API; connect-src precisa liberar a origem
+    Main->>Main: MFE chama API — connect-src precisa liberar a origem
 ```
 
 ---
