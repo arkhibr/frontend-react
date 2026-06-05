@@ -1,0 +1,55 @@
+server {
+    listen 80;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Nonce único por requisição (fonte: $request_id). Ver SECURITY.md / risco R4.
+    set $csp_nonce $request_id;
+
+    gzip on;
+    gzip_vary on;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+
+    # Bloco de cabeçalhos de segurança — repetido em cada location (sem herança no add_header).
+    # $csp_nonce é variável de runtime do Nginx (NÃO sofre envsubst, pois o filtro é ^CSP_).
+    # ${CSP_CONNECT_SRC} e ${CSP_REPORT_URI} são substituídos por envsubst no boot do container.
+
+    location ~* \.(js|css|png|svg|woff2|ico)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable" always;
+        add_header Content-Security-Policy "default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' https: 'unsafe-inline'; style-src 'self' 'nonce-$csp_nonce'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests; report-to csp-endpoint" always;
+        add_header Content-Security-Policy-Report-Only "require-trusted-types-for 'script'; trusted-types default; report-to csp-endpoint" always;
+        add_header Reporting-Endpoints "csp-endpoint=\"${CSP_REPORT_URI}\"" always;
+        add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), browsing-topics=()" always;
+        add_header Cross-Origin-Opener-Policy "same-origin" always;
+    }
+
+    location = /index.html {
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        add_header Content-Security-Policy "default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' https: 'unsafe-inline'; style-src 'self' 'nonce-$csp_nonce'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests; report-to csp-endpoint" always;
+        add_header Content-Security-Policy-Report-Only "require-trusted-types-for 'script'; trusted-types default; report-to csp-endpoint" always;
+        add_header Reporting-Endpoints "csp-endpoint=\"${CSP_REPORT_URI}\"" always;
+        add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), browsing-topics=()" always;
+        add_header Cross-Origin-Opener-Policy "same-origin" always;
+        sub_filter_once off;
+        sub_filter '**CSP_NONCE**' $csp_nonce;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header Content-Security-Policy "default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' https: 'unsafe-inline'; style-src 'self' 'nonce-$csp_nonce'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests; report-to csp-endpoint" always;
+        add_header Content-Security-Policy-Report-Only "require-trusted-types-for 'script'; trusted-types default; report-to csp-endpoint" always;
+        add_header Reporting-Endpoints "csp-endpoint=\"${CSP_REPORT_URI}\"" always;
+        add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), browsing-topics=()" always;
+        add_header Cross-Origin-Opener-Policy "same-origin" always;
+    }
+}
