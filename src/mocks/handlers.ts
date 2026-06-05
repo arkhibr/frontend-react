@@ -23,4 +23,11 @@ export const handlers = [
   http.put('/usuario/emprestimo', async ({ request }) =>
     HttpResponse.json(await request.json()),
   ),
+  // Coletor de violações de CSP em dev: o navegador faz POST para o
+  // endpoint de Reporting-Endpoints (/__csp-report). Loga e responde 204.
+  http.post('/__csp-report', async ({ request }) => {
+    const body = await request.text()
+    console.warn('[csp-report]', body)
+    return new HttpResponse(null, { status: 204 })
+  }),
 ]
