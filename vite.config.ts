@@ -8,6 +8,28 @@ export default defineConfig({
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },
+  server: {
+    headers: {
+      'Content-Security-Policy-Report-Only': [
+        "default-src 'none'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob:",
+        "font-src 'self'",
+        "connect-src 'self' ws: http://localhost:4566",
+        "worker-src 'self' blob:",
+        "manifest-src 'self'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+        "object-src 'none'",
+        "require-trusted-types-for 'script'",
+        "trusted-types default",
+        "report-to csp-endpoint",
+      ].join('; '),
+      'Reporting-Endpoints': 'csp-endpoint="/__csp-report"',
+    },
+  },
   build: {
     rollupOptions: {
       output: {
