@@ -44,11 +44,11 @@ sequenceDiagram
     V-->>LM: MfeManifest válido
     LM-->>Main: manifest
     Main->>R: resolveLoadOrder(manifest.mfes)
-    note right of R: ordenação topológica (Kahn)<br/>respeita dependsOn; lança erro em ciclo
+    note right of R: ordenação topológica de Kahn — respeita dependsOn e lança erro em ciclo
     R-->>Main: MFEs ordenados
     Main->>Rt: createAppRouter(ordered)
-    Rt-->>Main: router (rota por MFE)
-    Main->>Main: render(<RouterProvider />)
+    Rt-->>Main: router com uma rota por MFE
+    Main->>Main: render do RouterProvider
     end
 
     rect rgb(240, 250, 240)
