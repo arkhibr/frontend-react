@@ -33,7 +33,6 @@ sequenceDiagram
     participant S3 as Bundle do MFE (S3/LocalStack)
     participant Mfe as Módulo do MFE
 
-    rect rgb(238, 244, 255)
     note over Main,Rt: Bootstrap (uma vez)
     Main->>Cfg: loadConfig()
     Cfg-->>Main: config (apiUrl, ...)
@@ -49,9 +48,7 @@ sequenceDiagram
     Main->>Rt: createAppRouter(ordered)
     Rt-->>Main: router com uma rota por MFE
     Main->>Main: render do RouterProvider
-    end
 
-    rect rgb(240, 250, 240)
     note over U,Mfe: Mount sob demanda (ao navegar)
     U->>Host: navega para entry.route
     alt state === 'maintenance'
@@ -72,13 +69,10 @@ sequenceDiagram
             Mfe-->>U: UI do MFE renderizada
         end
     end
-    end
 
-    rect rgb(252, 245, 245)
     note over U,Mfe: Desmontagem (cleanup do useEffect)
     U->>Host: sai da rota / token muda
     Host->>Mfe: unmount(el)
-    end
 ```
 
 Pontos-chave do diagrama:
