@@ -21,7 +21,7 @@ function MfeMountPoint({ entry }: { entry: MfeEntry }) {
     let mod: MfeModule | null = null
     let cancelled = false
 
-    markStart(entry.id, 'total')
+    const loadStart = performance?.now?.() ?? 0
     loadMfeModule(entry.url, entry.id)
       .then((m) => {
         if (cancelled) return
@@ -34,7 +34,14 @@ function MfeMountPoint({ entry }: { entry: MfeEntry }) {
           onUnauthorized: () => dispatch(logout()),
         })
         markEnd(entry.id, 'mount')
-        markEnd(entry.id, 'total')
+        try {
+          if (typeof performance !== 'undefined' && typeof performance.mark === 'function') {
+            performance.mark(`mfe:${entry.id}:total:start`, { startTime: loadStart })
+            performance.measure(`mfe:${entry.id}:total`, `mfe:${entry.id}:total:start`)
+          }
+        } catch {
+          // ignore: performance API unavailable ou mark não suportado
+        }
       })
       .catch((err) => {
         if (cancelled) return

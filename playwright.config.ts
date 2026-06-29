@@ -23,6 +23,8 @@ export default defineConfig({
       testDir: './tests/perf',
       testMatch: '**/*.perf.ts',
       retries: 0,
+      fullyParallel: false,
+      workers: 1,
       use: { ...devices['Desktop Chrome'] },
     },
   ],
