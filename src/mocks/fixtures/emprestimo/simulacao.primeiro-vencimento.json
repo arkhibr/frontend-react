@@ -1,0 +1,18 @@
+{
+  "DataDeVencimentoInicial": "2026-08-05",
+  "ContratosAptosAoRefinanciamento": [
+    {
+      "NumeroDeContratoBase": "654321-0",
+      "DataDaUltimaAtualizacao": "2026-06-20",
+      "DataDoProximoVencimento": "2026-07-05",
+      "TotalDoSaldoDevedor": 4132.99,
+      "CodigoDaLinhaDeEmprestimo": 205,
+      "ContratoAptoParaRefinanciamento": true,
+      "ContratoRefinanciavelApenasPelaMesmaLinha": true,
+      "LinhaDeEmprestimo": {
+        "CodigoDaLinha": 205,
+        "DescricaoDaLinha": "Refinanciamento Consignado"
+      }
+    }
+  ]
+}

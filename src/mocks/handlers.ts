@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { TEST_TOKEN } from '@/shared/auth/testToken'
+import { emprestimoHandlers } from './handlers/emprestimo'
 
 export { TEST_TOKEN }
 
@@ -17,12 +18,6 @@ export const handlers = [
   http.put('/usuario/endereco', async ({ request }) =>
     HttpResponse.json(await request.json()),
   ),
-  http.get('/usuario/emprestimo', () =>
-    HttpResponse.json({ valor: '10000', parcelas: '12' }),
-  ),
-  http.put('/usuario/emprestimo', async ({ request }) =>
-    HttpResponse.json(await request.json()),
-  ),
   // Coletor de violações de CSP em dev: o navegador faz POST para o
   // endpoint de Reporting-Endpoints (/__csp-report). Loga e responde 204.
   http.post('/__csp-report', async ({ request }) => {
@@ -30,4 +25,5 @@ export const handlers = [
     console.warn('[csp-report]', body)
     return new HttpResponse(null, { status: 204 })
   }),
+  ...emprestimoHandlers,
 ]

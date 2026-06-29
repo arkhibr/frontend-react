@@ -1,0 +1,37 @@
+import { http, HttpResponse } from 'msw'
+import contratosList from '../fixtures/emprestimo/contratos.list.json'
+import contratosDetail from '../fixtures/emprestimo/contratos.detail.json'
+import propostasList from '../fixtures/emprestimo/propostas.list.json'
+import extrato from '../fixtures/emprestimo/extrato.by-period.json'
+import previsao from '../fixtures/emprestimo/previsao.by-contract.json'
+import detalhamento from '../fixtures/emprestimo/detalhamento.by-contract.json'
+import atraso from '../fixtures/emprestimo/atraso.by-contract.json'
+import parametros from '../fixtures/emprestimo/simulacao.parametros.json'
+import primeiroVenc from '../fixtures/emprestimo/simulacao.primeiro-vencimento.json'
+import multiplas from '../fixtures/emprestimo/simulacao.multiplas.json'
+import termoProposta from '../fixtures/emprestimo/termo.proposta-web.json'
+import termoCompart from '../fixtures/emprestimo/termo.compartilhamento.json'
+import termoCadastrais from '../fixtures/emprestimo/termo.dados-cadastrais.json'
+import dataprev from '../fixtures/emprestimo/dataprev.dados-trabalhador.json'
+import propostaInsert from '../fixtures/emprestimo/propostas.insert.json'
+
+export const emprestimoHandlers = [
+  http.get('/emprestimo.svc/contratos', () => HttpResponse.json(contratosList)),
+  http.get('/emprestimo.svc/contratos/:id', () => HttpResponse.json(contratosDetail)),
+  http.get('/emprestimo.svc/propostas', () => HttpResponse.json(propostasList)),
+  http.delete('/emprestimo.svc/propostas/:id', () => HttpResponse.json(true)),
+  http.get('/Emprestimo.svc/ObterExtratoEmprestimo/:id/:di/:df', () => HttpResponse.json(extrato)),
+  http.get('/emprestimo.svc/obterprevisaodecontratoemandamento/:id', () => HttpResponse.json(previsao)),
+  http.get('/emprestimo.svc/detalhamentodeparcelas/:id', () => HttpResponse.json(detalhamento)),
+  http.get('/emprestimo.svc/obterparcelasematrasodocontrato/:id', () => HttpResponse.json(atraso)),
+  http.get('/emprestimo.svc/simulacao', () => HttpResponse.json(parametros)),
+  http.get('/emprestimo.svc/simulacao/:cl/:tv/:dv/:dl/:dr', () => HttpResponse.json(primeiroVenc)),
+  http.post('/emprestimo.svc/MultiplasSimulacoes', () => HttpResponse.json(multiplas)),
+  http.get('/TermoDeAceite.svc/TermoDeConsentimento/PropostaWeb', () => HttpResponse.json(termoProposta)),
+  http.get('/TermoDeAceite.svc/TermoDeConsentimento/AutorizacaoConsultaDadosDoTrabalhador', () => HttpResponse.json(termoCompart)),
+  http.get('/TermoDeAceite.svc/TermoDeConsentimento/CONSENTIMENTO_DADOS_CADASTRAIS', () => HttpResponse.json(termoCadastrais)),
+  http.post('/TermoDeAceite.svc/TermoDeConsentimento/Variaveis/Substituir', () => HttpResponse.json('Texto do termo preenchido.')),
+  http.post('/TermoDeAceite.svc/AssinarTermoDeAceite', () => HttpResponse.json(true)),
+  http.get('/emprestimo.svc/dados-trabalhador-dataprev', () => HttpResponse.json(dataprev)),
+  http.post('/emprestimo.svc/propostas/object', () => HttpResponse.json(propostaInsert)),
+]

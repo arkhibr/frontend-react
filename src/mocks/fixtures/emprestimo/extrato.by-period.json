@@ -1,0 +1,28 @@
+{
+  "Contrato": "123456-7",
+  "DataInicial": "2026-05-30",
+  "DataFinal": "2026-06-29",
+  "MovimentoDeEmprestimo": [
+    {
+      "TipoLancamento": "Debito",
+      "Data": "2026-06-10",
+      "Historico": "Prestação mensal",
+      "Valor": 944.3,
+      "Saldo": 10189.8
+    },
+    {
+      "TipoLancamento": "Credito",
+      "Data": "2026-06-21",
+      "Historico": "Estorno de tarifa",
+      "Valor": 12.5,
+      "Saldo": 10202.3
+    }
+  ],
+  "Total": -931.8,
+  "FormaDePagamento": "Débito em conta",
+  "NomeDaLinhaDeFinanciamento": "Crédito Pessoal",
+  "QuantidadeDeParcelas": 24,
+  "QuantidadeDeParcelasRestantes": 14,
+  "DataDeVencimentoInicial": "2025-09-10",
+  "DataDeVencimentoFinal": "2027-08-10"
+}

@@ -1,0 +1,20 @@
+{
+  "ParcelasEstimadas": [
+    {
+      "NumeroDaParcela": 1,
+      "DataDeVencimento": "2026-08-05",
+      "ValorDaAmortizacao": 311.2,
+      "ValorDaTaxaDeServico": 55,
+      "ValorDoSeguro": 10.1,
+      "ValorDaCorrecao": 0,
+      "ValorDoJuros": 268.9,
+      "ValorDaPrestacao": 645.2
+    }
+  ],
+  "TotalDaTaxaDeAmortizacao": 7468.8,
+  "TotalDaTaxaDeServico": 1320,
+  "TotalDoSeguro": 242.4,
+  "TotalDaTaxaDeCorrecao": 0,
+  "TotalDeJuros": 2453.6,
+  "TotalDoValorDasParcelas": 15484.8
+}

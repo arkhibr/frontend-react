@@ -1,0 +1,62 @@
+{
+  "LinhasDeEmprestimo": [
+    {
+      "CodigoDaLinha": 205,
+      "DescricaoDaLinha": "Refinanciamento Consignado",
+      "NumeroMinimoDeParcelas": 12,
+      "NumeroMaximoDeParcelas": 48,
+      "TipoDeVencimento": 2,
+      "DiasDeVencimentoDataBase": [
+        5
+      ],
+      "ValorMinimo": 3000,
+      "ValorMaximo": 50000,
+      "PermiteRefinanciarEmprestimo": true,
+      "TipoDeFinanciamento": {
+        "Key": "2",
+        "Value": "SAC"
+      },
+      "PercentualDaTaxaJuros": 1.39,
+      "CreditoDoTrabalhador": true
+    }
+  ],
+  "TiposDeVencimentoDeEmprestimo": [
+    {
+      "TipoDeVencimento": 2,
+      "DescricaoDoVencimento": "Dia Fixo",
+      "VencimentoMinimo": "2026-08-05",
+      "DiaVencimento": 5
+    }
+  ],
+  "DataDeLiberacaoMinima": "2026-06-30",
+  "PodeSolicitarProposta": true,
+  "ResumoDeEmprestimo": {
+    "SaldoDevedor": 13378.49,
+    "SaldoEmAtraso": 615.8,
+    "LimiteTecnico": 50000,
+    "LimiteParaLiberacao": 12000,
+    "PodeVisualizarLimites": true,
+    "MargemConsignavel": 980.5
+  },
+  "PermiteRefinanciamentoDeContratosDeEmprestimo": true,
+  "PodeSimularPropostaDeEmprestimos": true,
+  "UtilizaSelecaoDeBancoParaLiberacaoDeCredito": true,
+  "ContasParaLiberacaoDeCredito": [
+    {
+      "NumeroDoBanco": "756",
+      "NumeroDaAgencia": "1234",
+      "ContaCorrente": "987654",
+      "NumeroDaContaCorrenteParaLiberacaoDoCredito": 1001,
+      "DigitoDaContaCorrente": "0"
+    }
+  ],
+  "ConfiguracaoDeIdentificacaoPositiva": {
+    "Id": "ipo-001",
+    "Pergunta": "Informe sua senha de 6 dígitos",
+    "QuantidadeDeTentativasAntesDoBloqueio": 3,
+    "ConfiguracoesDaResposta": {
+      "TamanhoDaResposta": 6
+    }
+  },
+  "TemAutorizacaoParaConsultaDeDados": true
+}
