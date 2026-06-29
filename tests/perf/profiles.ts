@@ -19,7 +19,7 @@ export const PROFILES: NetworkProfile[] = [
 /** MFEs medidos. `route` é o caminho navegável; `id` casa com data-mfe e os measures. */
 export const TARGETS = [
   { id: 'endereco', route: '/endereco' },
-  { id: 'emprestimo', route: '/emprestimo' },
+  { id: 'emprestimo', route: '/emprestimos' },
 ] as const
 
 export const RUNS_PER_CELL = 5
