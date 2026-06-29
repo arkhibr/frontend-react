@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react'
 export function HeaderMarca({ titulo, onVoltar }: { titulo: string; onVoltar?: () => void }) {
   return (
     <header className="poc-header">
-      {onVoltar && <button className="poc-action-button" aria-label="Voltar" onClick={onVoltar}>←</button>}
+      {onVoltar && <button className="poc-header__voltar" aria-label="Voltar" onClick={onVoltar}>←</button>}
       <h2 className="poc-header__titulo">{titulo}</h2>
     </header>
   )
