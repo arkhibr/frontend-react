@@ -9,6 +9,12 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
+    // `?raw` CSS imports are intercepted by vitest's `vitest:css-empty-post`
+    // plugin and turned into `export default ""` unless the id matches
+    // css.include. Including the `?raw` pattern makes vitest pass the import
+    // through Vite's asset pipeline, which correctly reads and exports the
+    // raw file content.
+    css: { include: [/\.css\?raw$/] },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
