@@ -1,4 +1,5 @@
 import type { MfeModule } from './types'
+import { markStart, markEnd } from './perf'
 
 export function assertMfeModule(mod: unknown, url: string): MfeModule {
   const m = mod as Partial<MfeModule>
@@ -7,7 +8,14 @@ export function assertMfeModule(mod: unknown, url: string): MfeModule {
   return m as MfeModule
 }
 
-export async function loadMfeModule(url: string): Promise<MfeModule> {
+export async function loadMfeModule(url: string, id?: string): Promise<MfeModule> {
+  if (id) markStart(id, 'fetchEval')
   const mod = await import(/* @vite-ignore */ url)
-  return assertMfeModule(mod, url)
+  if (id) markEnd(id, 'fetchEval')
+
+  if (id) markStart(id, 'validate')
+  const result = assertMfeModule(mod, url)
+  if (id) markEnd(id, 'validate')
+
+  return result
 }
