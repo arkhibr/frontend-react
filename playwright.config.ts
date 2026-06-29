@@ -13,7 +13,18 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'chromium',
+      testDir: './tests/e2e',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'perf',
+      testDir: './tests/perf',
+      testMatch: '**/*.perf.ts',
+      retries: 0,
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
   webServer: process.env.CI
     ? undefined
