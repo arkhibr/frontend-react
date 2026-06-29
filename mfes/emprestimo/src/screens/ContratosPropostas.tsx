@@ -35,6 +35,7 @@ export function ContratosPropostas({ api, ir }: { api: EmprestimoApi; ir: (v: Vi
 
       {aba === 'propostas' && (
         propostas.loading ? <p>Carregando propostas…</p>
+        : propostas.error ? <p role="alert">Não foi possível carregar as propostas.</p>
         : (propostas.data ?? []).map(toProposta).map((p) => (
           <CardBase key={p.numero}>
             <strong>{p.numero}</strong> — {p.linhaDeCredito}

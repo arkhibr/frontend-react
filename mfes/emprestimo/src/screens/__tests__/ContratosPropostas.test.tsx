@@ -34,4 +34,15 @@ describe('ContratosPropostas', () => {
     await userEvent.click(await screen.findByText('123456-7'))
     expect(ir).toHaveBeenCalledWith({ tela: 'emprestimo-contrato', contrato: '123456-7' })
   })
+
+  it('mostra alerta de erro na aba Propostas quando o fetch falha', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.includes('/propostas')) return new Response('{}', { status: 500 })
+      return new Response(JSON.stringify([]))
+    }))
+    render(<ContratosPropostas api={createApi(ctx)} ir={vi.fn()} />)
+    await userEvent.click(screen.getByRole('tab', { name: /Propostas/i }))
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(/Não foi possível carregar as propostas/i))
+  })
 })
