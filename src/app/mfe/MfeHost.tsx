@@ -5,6 +5,7 @@ import { logout } from '@/shared/lib/store/authSlice'
 import { getApiUrl } from '@/shared/config'
 import { MfeErrorBoundary } from './MfeErrorBoundary'
 import { loadMfeModule } from './loadMfeModule'
+import { markStart, markEnd } from './perf'
 import type { MfeEntry, MfeModule } from './types'
 
 function MfeMountPoint({ entry }: { entry: MfeEntry }) {
@@ -20,16 +21,20 @@ function MfeMountPoint({ entry }: { entry: MfeEntry }) {
     let mod: MfeModule | null = null
     let cancelled = false
 
-    loadMfeModule(entry.url)
+    markStart(entry.id, 'total')
+    loadMfeModule(entry.url, entry.id)
       .then((m) => {
         if (cancelled) return
         mod = m
+        markStart(entry.id, 'mount')
         m.mount(el, {
           apiUrl: getApiUrl(),
           token,
           basePath: entry.route,
           onUnauthorized: () => dispatch(logout()),
         })
+        markEnd(entry.id, 'mount')
+        markEnd(entry.id, 'total')
       })
       .catch((err) => {
         if (cancelled) return

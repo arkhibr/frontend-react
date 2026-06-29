@@ -28,6 +28,8 @@ beforeEach(() => {
   mount.mockClear()
   unmount.mockClear()
   vi.mocked(loadMfeModule).mockResolvedValue({ mount, unmount })
+  performance.clearMarks()
+  performance.clearMeasures()
 })
 
 describe('MfeHost', () => {
@@ -58,5 +60,14 @@ describe('MfeHost', () => {
     vi.mocked(loadMfeModule).mockRejectedValueOnce(new Error('404'))
     renderHost(entry)
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/indisponível/i))
+  })
+
+  it('emite measures mfe:<id>:total e mfe:<id>:mount após montar', async () => {
+    renderHost(entry)
+    await waitFor(() => expect(mount).toHaveBeenCalledTimes(1))
+    await waitFor(() => {
+      expect(performance.getEntriesByName('mfe:endereco:mount', 'measure')).toHaveLength(1)
+      expect(performance.getEntriesByName('mfe:endereco:total', 'measure')).toHaveLength(1)
+    })
   })
 })
