@@ -104,7 +104,7 @@ export interface LinhaDeCreditoDto {
   HabilitadaParaPessoasFisicas?: boolean
   HabilitadaParaPessoasJuridicas?: boolean
   DataDeLiberacaoMinima?: string
-  ParametrosDaCAD?: object
+  ParametrosDaCAD?: Record<string, unknown>
   NaoConsiderarOsParametrosDeRefinanciamento?: boolean
   NumeroDeAvalistas?: number
   PercentualDaTaxaJuros: number
@@ -187,14 +187,14 @@ export interface ParametrosParaSimulacaoDto {
   PodeSolicitarProposta?: boolean
   EhSimulacaoSemLogin?: boolean
   ObrigarDadosComplementaresNaSimulacaoSemLogin?: boolean
-  ResumoDeEmprestimo?: object
+  ResumoDeEmprestimo?: Record<string, unknown>
   PodeSolicitarPropostaDeEmprestimoCasoAPessoaSejaObrigadaATerUmEmail?: boolean
   DeveExigirSenhaDeLoginAoSolicitarPropostaDeEmprestimo?: boolean
   PodeAlterarADataDeVencimentoInicial?: boolean
   PodeAlterarADataDeLiberacao?: boolean
   MensagemDeSucessoAoInserirEmprestimo?: string
   PodeVisualizarInformacoesDoEmprestimo?: boolean
-  DadosBancarios?: object
+  DadosBancarios?: Record<string, unknown>
   DeveExigirOAceiteDoTermoAoSolicitarProposta?: boolean
   MensagemDoTermoDeAceiteAoSolicitarPropostaDeEmprestimo?: string
   PermiteRefinanciamentoDeContratosDeEmprestimo?: boolean
@@ -269,7 +269,7 @@ export interface SolicitacaoDePropostaDto {
   NumeroParcelas: number
   LinhaCredito: number
   MesAnoVencimento?: string
-  DataLiberacao?: Date
+  DataLiberacao?: string
   TipoDeVencimento?: number
   DiaVencimento?: number
   NumeroDaContaCorrenteParaLiberacaoDoCredito?: number
