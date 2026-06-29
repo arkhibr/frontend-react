@@ -26,4 +26,20 @@ describe('ConsultaScreen', () => {
     render(<ConsultaScreen api={createApi(ctx)} view={{ tela: 'emprestimo-atraso', contrato: '654321-0' }} voltar={() => {}} />)
     await waitFor(() => expect(screen.getByText('2026-05-05')).toBeInTheDocument())
   })
+
+  it('previsao: lista parcelas previstas', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
+      Parcelas: [{ NumeroDaParcela: 1, DataDeVencimento: '2026-07-05', ValorDaPrestacao: 455.5, ValorDoSaldoAtual: 9000 }],
+    }))))
+    render(<ConsultaScreen api={createApi(ctx)} view={{ tela: 'emprestimo-previsao', contrato: '001-A' }} voltar={() => {}} />)
+    await waitFor(() => expect(screen.getByText('2026-07-05')).toBeInTheDocument())
+  })
+
+  it('detalhamento: lista parcelas detalhadas', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify([
+      { NumeroDaParcela: 1, DataDeVencimento: '2026-07-05', ValorDaPrestacao: 455.5, StatusDaParcela: 'Paga' },
+    ]))))
+    render(<ConsultaScreen api={createApi(ctx)} view={{ tela: 'emprestimo-detalhamento', contrato: '001-A' }} voltar={() => {}} />)
+    await waitFor(() => expect(screen.getByText('Paga')).toBeInTheDocument())
+  })
 })
