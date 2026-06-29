@@ -1,0 +1,85 @@
+// Domain types — front-end model (camelCase, UI-facing)
+
+export type View =
+  | { tela: 'emprestimos' }
+  | { tela: 'emprestimo-contrato'; contrato: string }
+  | { tela: 'emprestimo-extrato'; contrato: string }
+  | { tela: 'emprestimo-previsao'; contrato: string }
+  | { tela: 'emprestimo-detalhamento'; contrato: string }
+  | { tela: 'emprestimo-atraso'; contrato: string }
+  | { tela: 'emprestimo-simulador'; tipo?: 'refinanciar' }
+
+export interface Contrato {
+  numero: string
+  linhaDeCredito: string
+  valorLiberado: number
+  saldoAtual: number
+  parcelas: number
+  parcelasRestantes: number
+  taxaDeJuros: number
+  cetMensal: number
+  cetAnual: number
+  temAtraso: boolean
+  proximaParcela: { vencimento: string; valor: number } | null
+}
+
+export interface Proposta {
+  numero: string
+  linhaDeCredito: string
+  taxaDeJuros: number
+  dataDeEmissao: string
+  valorBruto: number
+  valorLiquido: number
+  parcelas: number
+  status: string
+}
+
+export interface ParcelaAtraso {
+  contrato: string
+  vencimento: string
+  valorPrestacao: number
+  saldoAtual: number
+  proximoVencimento: string
+}
+
+export interface Movimento {
+  tipo: 'Credito' | 'Debito'
+  data: string
+  historico: string
+  valor: number
+  saldo: number
+}
+
+export interface ParcelaPrevista {
+  numero: number
+  vencimento: string
+  prestacao: number
+  saldoAtual: number
+}
+
+export interface ParcelaDetalhe {
+  numero: number
+  vencimento: string
+  prestacao: number
+  status: string
+}
+
+export interface LinhaDeCredito {
+  id: number
+  descricao: string
+  numeroMinimoDeParcelas: number
+  numeroMaximoDeParcelas: number
+  valorMinimo: number
+  valorMaximo: number
+  percentualTaxaJuros: number
+  creditoTrabalhador: boolean
+}
+
+export interface EmprestimoSimulado {
+  parcelas: number
+  valorBruto: number
+  valorLiquido: number
+  cet: number
+  cetAnual: number
+  totalDasParcelas: number
+}
