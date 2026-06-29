@@ -295,7 +295,5 @@ export interface DadosTrabalhadorDataPrevDto {
 }
 
 export interface InsercaoDePropostaResponse {
-  Contrato?: string
-  Mensagem?: string
-  Sucesso?: boolean
+  numeroDoContrato: string
 }
