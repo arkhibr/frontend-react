@@ -70,7 +70,7 @@ describe('ResultadoEnvio', () => {
     expect(screen.getByText(/Assinar e enviar proposta/i)).toBeInTheDocument()
   })
 
-  it('passo enviado: mostra número do contrato', () => {
+  it('passo enviado: mostra confirmação de envio', () => {
     vi.stubGlobal('fetch', vi.fn())
     // passo enviado não faz fetch adicional — apenas exibe o estado
     render(<ResultadoEnvio api={createApi(ctx)} sim={makeSim('enviado')} voltar={() => {}} />)
