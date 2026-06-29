@@ -1,5 +1,5 @@
-import type { ContratoDto, PropostaDto, ParcelaEmAtrasoDto, MovimentoDeEmprestimoDto, PrevisaoDeParcelaDto, ParcelaDetalheDto, LinhaDeCreditoDto } from '../dto'
-import type { Contrato, Proposta, ParcelaAtraso, Movimento, ParcelaPrevista, ParcelaDetalhe, LinhaDeCredito } from '../domain'
+import type { ContratoDto, PropostaDto, ParcelaEmAtrasoDto, MovimentoDeEmprestimoDto, PrevisaoDeParcelaDto, ParcelaDetalheDto, LinhaDeCreditoDto, EmprestimoSimuladoDto } from '../dto'
+import type { Contrato, Proposta, ParcelaAtraso, Movimento, ParcelaPrevista, ParcelaDetalhe, LinhaDeCredito, EmprestimoSimulado } from '../domain'
 
 export function toContrato(d: ContratoDto): Contrato {
   const p = d.ProximaParcela
@@ -62,4 +62,9 @@ export const toLinhaDeCredito = (d: LinhaDeCreditoDto): LinhaDeCredito => ({
   numeroMinimoDeParcelas: d.NumeroMinimoDeParcelas, numeroMaximoDeParcelas: d.NumeroMaximoDeParcelas,
   valorMinimo: d.ValorMinimo, valorMaximo: d.ValorMaximo,
   percentualTaxaJuros: d.PercentualDaTaxaJuros, creditoTrabalhador: d.CreditoDoTrabalhador ?? false,
+})
+
+export const toEmprestimoSimulado = (d: EmprestimoSimuladoDto): EmprestimoSimulado => ({
+  parcelas: d.NumeroDeParcelas, valorBruto: d.ValorBruto, valorLiquido: d.ValorLiquido,
+  cet: d.CET, cetAnual: d.CET_ANUAL, totalDasParcelas: d.TotalDoValorDasParcelas,
 })
