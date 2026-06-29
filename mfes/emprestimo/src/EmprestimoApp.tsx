@@ -1,31 +1,28 @@
-import { useEffect, useState } from 'react'
-import { createHttpClient } from './api/httpClient'
-import { EmprestimoForm, type Emprestimo } from './EmprestimoForm'
+import { useReducer, useMemo } from 'react'
+import { createApi } from './api/endpoints'
+import { navReducer, estadoInicial } from './navigation/machine'
+import type { View } from './domain'
+import { ContratosPropostas } from './screens/ContratosPropostas'
+import { Contrato } from './screens/Contrato'
+import { ConsultaScreen } from './screens/consultas'
+import { Simulador } from './screens/Simulador'
 import type { MfeMountContext } from './contract'
 
 export function EmprestimoApp({ ctx }: { ctx: MfeMountContext }) {
-  const [emprestimo, setEmprestimo] = useState<Emprestimo | null>(null)
-  const [saved, setSaved] = useState(false)
-  const client = createHttpClient(ctx)
-
-  useEffect(() => {
-    client<Emprestimo>('/usuario/emprestimo').then(setEmprestimo).catch(() => setEmprestimo({ valor: '', parcelas: '' }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  if (!emprestimo) return <p>Carregando simulação…</p>
+  const [nav, dispatch] = useReducer(navReducer, estadoInicial)
+  const api = useMemo(() => createApi(ctx), [ctx])
+  const ir = (view: View) => dispatch({ tipo: 'ir', view })
+  const voltar = () => dispatch({ tipo: 'voltar' })
+  const v = nav.atual
 
   return (
-    <section>
-      <h2 className="mb-4 text-xl font-bold">Simulação de Empréstimo</h2>
-      <EmprestimoForm
-        initial={emprestimo}
-        onSubmit={async (e) => {
-          await client('/usuario/emprestimo', { method: 'PUT', body: JSON.stringify(e) })
-          setSaved(true)
-        }}
-      />
-      {saved && <p role="status" className="mt-4 text-green-700">Simulação registrada.</p>}
-    </section>
+    <div className="poc-app">
+      {v.tela === 'emprestimos' && <ContratosPropostas api={api} ir={ir} />}
+      {v.tela === 'emprestimo-contrato' && <Contrato api={api} contrato={v.contrato} ir={ir} voltar={voltar} />}
+      {(v.tela === 'emprestimo-extrato' || v.tela === 'emprestimo-previsao'
+        || v.tela === 'emprestimo-detalhamento' || v.tela === 'emprestimo-atraso')
+        && <ConsultaScreen api={api} view={v} voltar={voltar} />}
+      {v.tela === 'emprestimo-simulador' && <Simulador api={api} tipo={v.tipo} voltar={voltar} />}
+    </div>
   )
 }
