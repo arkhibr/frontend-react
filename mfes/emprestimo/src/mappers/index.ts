@@ -1,5 +1,5 @@
-import type { ContratoDto, PropostaDto, ParcelaEmAtrasoDto } from '../dto'
-import type { Contrato, Proposta, ParcelaAtraso } from '../domain'
+import type { ContratoDto, PropostaDto, ParcelaEmAtrasoDto, MovimentoDeEmprestimoDto, PrevisaoDeParcelaDto, ParcelaDetalheDto } from '../dto'
+import type { Contrato, Proposta, ParcelaAtraso, Movimento, ParcelaPrevista, ParcelaDetalhe } from '../domain'
 
 export function toContrato(d: ContratoDto): Contrato {
   const p = d.ProximaParcela
@@ -42,3 +42,17 @@ export function toParcelaAtraso(d: ParcelaEmAtrasoDto): ParcelaAtraso {
     proximoVencimento: d.DataDoProximoVencimento,
   }
 }
+
+export const toMovimento = (d: MovimentoDeEmprestimoDto): Movimento => ({
+  tipo: d.TipoLancamento, data: d.Data, historico: d.Historico, valor: d.Valor, saldo: d.Saldo,
+})
+
+export const toParcelaPrevista = (d: PrevisaoDeParcelaDto): ParcelaPrevista => ({
+  numero: d.NumeroDaParcela, vencimento: d.DataDeVencimento,
+  prestacao: d.ValorDaPrestacao, saldoAtual: d.ValorDoSaldoAtual,
+})
+
+export const toParcelaDetalhe = (d: ParcelaDetalheDto): ParcelaDetalhe => ({
+  numero: d.NumeroDaParcela, vencimento: d.DataDeVencimento,
+  prestacao: d.ValorDaPrestacao, status: d.StatusDaParcela ?? '—',
+})
