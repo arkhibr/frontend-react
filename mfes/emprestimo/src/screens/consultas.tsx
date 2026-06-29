@@ -7,7 +7,7 @@ const moeda = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', curr
 
 export function ConsultaScreen(
   { api, view, voltar }:
-  { api: EmprestimoApi; view: Extract<View, { contrato: string }>; voltar: () => void },
+  { api: EmprestimoApi; view: Extract<View, { tela: 'emprestimo-extrato' | 'emprestimo-previsao' | 'emprestimo-detalhamento' | 'emprestimo-atraso' }>; voltar: () => void },
 ) {
   const id = view.contrato
   switch (view.tela) {
@@ -51,6 +51,10 @@ export function ConsultaScreen(
       ]
       return <ConsultaTabela titulo="Parcelas em atraso" colunas={colunas} voltar={voltar}
         carregar={async () => (await api.obterAtraso(id)).ParcelasEmAtraso.map(toParcelaAtraso)} />
+    }
+    default: {
+      const _exhaustive: never = view
+      return _exhaustive
     }
   }
 }
