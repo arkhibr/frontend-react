@@ -48,6 +48,8 @@ graph LR
 
 Os microfrontends são carregados **dinamicamente em runtime** a partir de buckets S3 (Amazon Simple Storage Service), sob o contrato `mount`/`unmount` (ver ADR-008..014 e [`src/app/mfe/`](../../src/app/mfe/README.md)). As ADRs 008–014 cobrem a plataforma de microfrontends, sua segurança e seu contrato visual.
 
+O custo de carga dinâmica desse mecanismo é medido e documentado em [`docs/performance/`](../performance/README.md) — relatórios informativos por MFE, decompostos por fase e por perfil de rede.
+
 ## Mapa de Módulos
 
 | Módulo | Responsabilidade | Documentação |

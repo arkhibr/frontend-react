@@ -37,9 +37,17 @@ async function measureOnce(
   })
   await seedSession(page)
   await page.goto(target.route)
-  // espera o MFE montar (div com conteúdo) e o measure total existir.
+  // espera o MFE montar (host com filhos) e o measure total existir.
+  // `state: 'attached'` em vez do default 'visible': MFEs que pré-injetam um
+  // <style> como primeiro filho (contrato visual da ADR-014, ex.: emprestimo)
+  // fariam o selector default esperar a visibilidade de um <style> — que nunca
+  // fica visível — e estourar o timeout. O sinal real de "montou" é o measure
+  // mfe:<id>:total logo abaixo; aqui só garantimos que o host ganhou conteúdo.
   // Timeout folgado: sob Slow 3G a carga a frio do shell + bundle passa de 30s.
-  await page.waitForSelector(`[data-mfe="${target.id}"] *`, { timeout: 120_000 })
+  await page.waitForSelector(`[data-mfe="${target.id}"] *`, {
+    state: 'attached',
+    timeout: 120_000,
+  })
   await page.waitForFunction(
     (id) => performance.getEntriesByName(`mfe:${id}:total`, 'measure').length > 0,
     target.id,
