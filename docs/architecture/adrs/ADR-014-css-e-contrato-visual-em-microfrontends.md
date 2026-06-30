@@ -203,6 +203,15 @@ Antes de decidir onde uma regra CSS fica, perguntar:
 - [ ] MFE consome tokens globais do shell por `var(...)` com fallback, quando aplicável
 - [ ] Novo MFE pode ser adicionado sem alteração de CSS no shell
 
+### Guardrails automatizados
+
+| Teste | Garante |
+|---|---|
+| [`src/app/mfe/__tests__/visualContract.test.ts`](../../../src/app/mfe/__tests__/visualContract.test.ts) | shell não referencia classes internas de MFEs |
+| [`mfes/emprestimo/src/theme/__tests__/visual-contract.test.ts`](../../../mfes/emprestimo/src/theme/__tests__/visual-contract.test.ts) | CSS do MFE `emprestimo` fica escopado, sem reset global, e consome tokens globais com fallback |
+| [`mfes/emprestimo/src/theme/__tests__/inject.test.ts`](../../../mfes/emprestimo/src/theme/__tests__/inject.test.ts) | CSS local do MFE é injetado e removido no ciclo de vida |
+| [`mfes/emprestimo/src/__tests__/contract.test.tsx`](../../../mfes/emprestimo/src/__tests__/contract.test.tsx) | `mount` preserva o estilo local e `unmount` limpa o host |
+
 ## Links
 
 - ADRs relacionadas: [ADR-008 (microfrontends dinâmicos)](ADR-008-microfrontends-dinamicos.md), [ADR-009 (contrato mount/unmount)](ADR-009-contrato-mount-unmount.md), [ADR-010 (manifesto e dependências)](ADR-010-manifesto-e-dependencias.md), [ADR-011 (deploy S3)](ADR-011-deploy-s3-localstack.md)
