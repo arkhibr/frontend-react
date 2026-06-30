@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { EmprestimoApi } from '../api/endpoints'
 import type { useSimulador } from '../hooks/useSimulador'
+import type { SimulacaoDeEmprestimoDto, SolicitacaoDePropostaDto } from '../dto'
 import { useAsync } from '../hooks/useAsync'
 import { toEmprestimoSimulado } from '../mappers'
 import { HeaderMarca, CardBase, ActionButton } from '../components/poc'
@@ -20,7 +21,7 @@ export function ResultadoEnvio(
       ValorLiquido: estado.valorLiquido, ValorDaCAD: -1, NumeroDeParcelas: [estado.parcelas],
       TaxaContratual: -1, TipoDeVencimento: 2, DiaDeVencimento: 5, MesAnoDeVencimento: '08/2026',
       NumeroDosContratosHaRefinanciar: [],
-    } as never)
+    } satisfies SimulacaoDeEmprestimoDto)
     return r.PrevisoesDeParcelas.map(toEmprestimoSimulado)
   }, [estado.linha?.id, estado.valorLiquido, estado.parcelas])
 
@@ -48,11 +49,11 @@ export function ResultadoEnvio(
       onAssinado={async () => {
         const r = await api.enviarProposta({
           ValorLiquido: estado.valorLiquido, NumeroParcelas: estado.parcelas, LinhaCredito: estado.linha!.id,
-          MesAnoVencimento: '08/2026', DataLiberacao: new Date('2026-06-30') as never, TipoDeVencimento: 2,
+          MesAnoVencimento: '08/2026', DataLiberacao: '2026-06-30', TipoDeVencimento: 2,
           DiaVencimento: 5, NumeroDaContaCorrenteParaLiberacaoDoCredito: 1001,
           NumeroDeContratosDeEmprestimoParaRefinanciamento: [],
           AssinaturaDoTermoDeInclusaoDeProposta: { TipoDoTermoDeAceite: 'PROPOSTA_WEB', SistemaDeOrigem: 'WEB', TextoDoTermoDeAceite: 'aceito' },
-        } as never)
+        } satisfies SolicitacaoDePropostaDto)
         setNumeroContrato(r.numeroDoContrato)
         irPara('enviado')
       }}
