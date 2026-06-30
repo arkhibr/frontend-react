@@ -98,7 +98,7 @@ Além disso, o padrão de organização de pastas chamado FSD (Feature Sliced De
 
 ## Decisões arquiteturais (ADRs)
 
-Em [`docs/architecture/adrs/`](docs/architecture/adrs/). As ADRs 008–013 cobrem a plataforma de microfrontends e sua segurança:
+Em [`docs/architecture/adrs/`](docs/architecture/adrs/). As ADRs 008–014 cobrem a plataforma de microfrontends, sua segurança e seu contrato visual:
 
 | ADR | Decisão |
 |-----|---------|
@@ -115,6 +115,7 @@ Em [`docs/architecture/adrs/`](docs/architecture/adrs/). As ADRs 008–013 cobre
 | [ADR-011](docs/architecture/adrs/ADR-011-deploy-s3-localstack.md) | **Build/deploy de MFEs em S3 (LocalStack)** |
 | [ADR-012](docs/architecture/adrs/ADR-012-content-security-policy.md) | **Content Security Policy estrito e baseline de segurança** |
 | [ADR-013](docs/architecture/adrs/ADR-013-trusted-types-e-reporting.md) | **Trusted Types e Reporting API** |
+| [ADR-014](docs/architecture/adrs/ADR-014-css-e-contrato-visual-em-microfrontends.md) | **CSS e contrato visual em microfrontends dinâmicos** |
 
 ## Desenvolvimento local
 

@@ -16,7 +16,7 @@ export function EmprestimoApp({ ctx }: { ctx: MfeMountContext }) {
   const v = nav.atual
 
   return (
-    <div className="poc-app">
+    <div className="emprestimo-app">
       {v.tela === 'emprestimos' && <ContratosPropostas api={api} ir={ir} />}
       {v.tela === 'emprestimo-contrato' && <Contrato api={api} contrato={v.contrato} ir={ir} voltar={voltar} />}
       {(v.tela === 'emprestimo-extrato' || v.tela === 'emprestimo-previsao'

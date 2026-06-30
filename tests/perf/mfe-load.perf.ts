@@ -37,28 +37,47 @@ async function measureOnce(
   })
   await seedSession(page)
   await page.goto(target.route)
-  // espera o MFE montar (div com conteúdo) e o measure total existir
-  await page.waitForSelector(`[data-mfe="${target.id}"] *`, { timeout: 30_000 })
+  // espera o MFE montar (div com conteúdo) e o measure total existir.
+  // Timeout folgado: sob Slow 3G a carga a frio do shell + bundle passa de 30s.
+  await page.waitForSelector(`[data-mfe="${target.id}"] *`, { timeout: 120_000 })
   await page.waitForFunction(
     (id) => performance.getEntriesByName(`mfe:${id}:total`, 'measure').length > 0,
     target.id,
-    { timeout: 30_000 },
+    { timeout: 120_000 },
   )
   const sample = await readSample(page, target.id)
   await page.close()
   return sample
 }
 
+/** Escreve uma linha de progresso direto no stdout (visível no reporter list, ao vivo). */
+function progress(line: string): void {
+  process.stdout.write(`${line}\n`)
+}
+
 for (const target of TARGETS) {
   test(`perf: carga dinâmica de ${target.id}`, async ({ browser }) => {
-    test.setTimeout(180_000)
+    // Suite de carga a frio sob 4 perfis de rede: cada execução refaz o grafo
+    // de módulos do zero (cache desabilitado), então é legitimamente demorado.
+    test.setTimeout(900_000)
+    const total = PROFILES.length * RUNS_PER_CELL
+    progress(
+      `\n▶ PERF ${target.id}: ${PROFILES.length} perfis × ${RUNS_PER_CELL} execuções = ${total} cenários (carga a frio, cache desabilitado)`,
+    )
     const rows: { profile: string; samples: Sample[] }[] = []
+    let done = 0
     for (const profile of PROFILES) {
+      progress(`  • ${profile.name}`)
       const samples: Sample[] = []
       for (let i = 0; i < RUNS_PER_CELL; i++) {
         const context = await browser.newContext() // contexto novo => módulo e cache frios
         try {
-          samples.push(await measureOnce(context, profile, target))
+          const sample = await measureOnce(context, profile, target)
+          samples.push(sample)
+          done++
+          progress(
+            `    [${done}/${total}] ${profile.name} ${i + 1}/${RUNS_PER_CELL} — total ${Math.round(sample.total ?? 0)} ms`,
+          )
         } finally {
           await context.close()
         }

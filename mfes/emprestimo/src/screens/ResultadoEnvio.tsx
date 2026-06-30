@@ -4,7 +4,7 @@ import type { useSimulador } from '../hooks/useSimulador'
 import type { SimulacaoDeEmprestimoDto, SolicitacaoDePropostaDto } from '../dto'
 import { useAsync } from '../hooks/useAsync'
 import { toEmprestimoSimulado } from '../mappers'
-import { HeaderMarca, CardBase, ActionButton } from '../components/poc'
+import { HeaderMarca, CardBase, ActionButton, Metric } from '../components/ui'
 
 const moeda = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
@@ -28,15 +28,18 @@ export function ResultadoEnvio(
   if (estado.passo === 'resultado') {
     const cenario = simulacao.data?.[0]
     return (
-      <section>
-        <HeaderMarca titulo="Resultado da simulação" onVoltar={() => irPara('valores')} />
-        {simulacao.loading ? <p>Simulando…</p>
+      <section className="emprestimo-screen">
+        <HeaderMarca titulo="Resultado da simulação" subtitulo="Confira os valores antes de seguir para o termo." onVoltar={() => irPara('valores')} />
+        {simulacao.loading ? <p className="emprestimo-feedback">Simulando...</p>
           : simulacao.error || !cenario ? <p role="alert">Falha na simulação.</p>
           : (
-            <CardBase>
-              <p>Valor bruto: {moeda(cenario.valorBruto)}</p>
-              <p>Total das parcelas: {moeda(cenario.totalDasParcelas)}</p>
-              <p>CET: {cenario.cet}% a.m. · {cenario.cetAnual}% a.a.</p>
+            <CardBase className="emprestimo-detail-card">
+              <div className="emprestimo-metrics-grid emprestimo-metrics-grid--detail">
+                <Metric rotulo="Valor líquido" valor={moeda(cenario.valorLiquido)} />
+                <Metric rotulo="Valor bruto" valor={moeda(cenario.valorBruto)} />
+                <Metric rotulo="Parcelas" valor={`${cenario.parcelas}x`} detalhe={`Total: ${moeda(cenario.totalDasParcelas)}`} />
+                <Metric rotulo="CET" valor={`${cenario.cet}% a.m.`} detalhe={`${cenario.cetAnual}% a.a.`} />
+              </div>
               <ActionButton onClick={() => irPara('termo')}>Continuar para o termo</ActionButton>
             </CardBase>
           )}
@@ -61,9 +64,13 @@ export function ResultadoEnvio(
   }
 
   return (
-    <section>
-      <HeaderMarca titulo="Proposta enviada" onVoltar={voltar} />
-      <CardBase><p role="status">Proposta registrada sob o contrato {numeroContrato}.</p></CardBase>
+    <section className="emprestimo-screen">
+      <HeaderMarca titulo="Proposta enviada" subtitulo="A operação foi registrada para acompanhamento." onVoltar={voltar} />
+      <CardBase className="emprestimo-success-card">
+        <span>Contrato gerado</span>
+        <strong role="status">{numeroContrato ?? 'Aguardando confirmação'}</strong>
+        <p>Proposta registrada{numeroContrato ? ` sob o contrato ${numeroContrato}` : ''}. Use a aba de propostas para acompanhar a análise e os próximos passos.</p>
+      </CardBase>
     </section>
   )
 }
@@ -76,12 +83,14 @@ function PassoTermo(
   const dados = useAsync(() => linhaTrabalhador ? api.obterDadosTrabalhador()
     : Promise.resolve(null), [linhaTrabalhador])
   return (
-    <section>
-      <HeaderMarca titulo="Termo de aceite" onVoltar={voltar} />
-      {termo.loading ? <p>Carregando termo…</p>
-        : <CardBase><p>{termo.data?.TextoDoTermo}</p></CardBase>}
+    <section className="emprestimo-screen">
+      <HeaderMarca titulo="Termo de aceite" subtitulo="Leia as condições antes de enviar a proposta." onVoltar={voltar} />
+      {termo.loading ? <p className="emprestimo-feedback">Carregando termo...</p>
+        : <CardBase className="emprestimo-term-card"><p>{termo.data?.TextoDoTermo}</p></CardBase>}
       {linhaTrabalhador && dados.data && (
-        <CardBase><p>Margem disponível (DataPrev): {dados.data.ValorMargemDisponivel}</p></CardBase>
+        <CardBase className="emprestimo-inline-panel">
+          <Metric rotulo="Margem disponível DataPrev" valor={dados.data.ValorMargemDisponivel?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? '—'} />
+        </CardBase>
       )}
       <ActionButton onClick={async () => {
         await api.preencherVariaveis(termo.data!)

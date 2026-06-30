@@ -11,6 +11,7 @@ describe('contrato mount/unmount', () => {
     mount(el, ctx)
     expect(el.querySelector('style[data-emprestimo-theme]')).not.toBeNull()
     await vi.waitFor(() => expect(el.textContent).toMatch(/Empréstimos/i))
+    expect(el.querySelector('style[data-emprestimo-theme]')).not.toBeNull()
   })
 
   it('unmount remove tema e esvazia', async () => {

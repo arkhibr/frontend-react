@@ -1,12 +1,12 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ChipStatus, HeaderMarca, ActionButton, BlocoExpansivel, FeatureButton } from '../poc'
+import { ChipStatus, HeaderMarca, ActionButton, BlocoExpansivel, FeatureButton } from '../ui'
 
-describe('componentes poc', () => {
+describe('componentes ui', () => {
   it('ChipStatus aplica a classe do tom', () => {
     render(<ChipStatus texto="Pendente" tom="aviso" />)
-    expect(screen.getByText('Pendente').className).toMatch(/poc-chip/)
+    expect(screen.getByText('Pendente').className).toMatch(/emprestimo-chip/)
   })
   it('HeaderMarca chama onVoltar', async () => {
     const onVoltar = vi.fn()

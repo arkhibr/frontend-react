@@ -46,7 +46,7 @@ graph LR
     mfe -->|"HTTPS + Bearer JWT"| api
 ```
 
-Os microfrontends são carregados **dinamicamente em runtime** a partir de buckets S3 (Amazon Simple Storage Service), sob o contrato `mount`/`unmount` (ver ADR-008..013 e [`src/app/mfe/`](../../src/app/mfe/README.md)). As ADRs 008–013 cobrem a plataforma de microfrontends e sua segurança.
+Os microfrontends são carregados **dinamicamente em runtime** a partir de buckets S3 (Amazon Simple Storage Service), sob o contrato `mount`/`unmount` (ver ADR-008..014 e [`src/app/mfe/`](../../src/app/mfe/README.md)). As ADRs 008–014 cobrem a plataforma de microfrontends, sua segurança e seu contrato visual.
 
 ## Mapa de Módulos
 
@@ -78,3 +78,4 @@ Os microfrontends são carregados **dinamicamente em runtime** a partir de bucke
 | [ADR-011](adrs/ADR-011-deploy-s3-localstack.md) | Build independente e deploy de MFEs em S3 (LocalStack) | Proposed |
 | [ADR-012](adrs/ADR-012-content-security-policy.md) | **Content Security Policy estrito e baseline de segurança** | Proposed |
 | [ADR-013](adrs/ADR-013-trusted-types-e-reporting.md) | **Trusted Types e Reporting API** | Proposed |
+| [ADR-014](adrs/ADR-014-css-e-contrato-visual-em-microfrontends.md) | **CSS e contrato visual em microfrontends dinâmicos** | Proposed |
