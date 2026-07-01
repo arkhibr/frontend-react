@@ -12,7 +12,7 @@ describe('loadManifest', () => {
   it('carrega e valida o manifesto', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(ok))))
     const m = await loadManifest()
-    expect(m.mfes[0].id).toBe('a')
+    expect(m.mfes[0]!.id).toBe('a')
   })
 
   it('lança erro se o fetch falhar', async () => {

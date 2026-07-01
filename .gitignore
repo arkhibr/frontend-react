@@ -32,4 +32,4 @@ test-results/
 infra/.localstack/
 
 # Specs/planos de desenvolvimento — informação local apenas, não versionada
-docs/superpowers/
+docs/dev-specs/

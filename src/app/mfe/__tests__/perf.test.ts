@@ -15,7 +15,7 @@ describe('perf', () => {
     markEnd('endereco', 'mount')
     const measures = performance.getEntriesByName('mfe:endereco:mount', 'measure')
     expect(measures).toHaveLength(1)
-    expect(measures[0].duration).toBeGreaterThanOrEqual(0)
+    expect(measures[0]!.duration).toBeGreaterThanOrEqual(0)
   })
 
   it('não lança e não cria measure quando markEnd roda sem markStart', () => {

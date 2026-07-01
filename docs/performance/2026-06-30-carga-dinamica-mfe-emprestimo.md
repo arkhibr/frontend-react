@@ -4,7 +4,7 @@
 **MFE medido:** `emprestimo` (Simulação de Empréstimo) — rota `/emprestimos`
 **Harness:** `tests/perf/mfe-load.perf.ts` (projeto Playwright `perf`)
 **Comando:** `npm run test:perf` (`playwright test --project=perf`), filtrado em `emprestimo`
-**Natureza:** relatório **informativo**. Não há _gate_ de build, nem limiar rígido, nem falha de CI associada (ver ADR-008 e o [design](../superpowers/specs/2026-06-29-mfe-load-perf-report-design.md)).
+**Natureza:** relatório **informativo**. Não há _gate_ de build, nem limiar rígido, nem falha de CI associada (ver ADR-008).
 
 ---
 

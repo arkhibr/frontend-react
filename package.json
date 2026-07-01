@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "deploy": "node --experimental-strip-types scripts/deploy.ts",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "lint": "eslint src/",

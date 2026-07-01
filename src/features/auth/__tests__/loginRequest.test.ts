@@ -5,7 +5,7 @@ afterEach(() => vi.restoreAllMocks())
 
 describe('loginRequest', () => {
   it('faz POST em /auth/token e retorna o access_token', async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ access_token: 'abc' })))
+    const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(JSON.stringify({ access_token: 'abc' })))
     vi.stubGlobal('fetch', fetchMock)
     const token = await loginRequest('usuario@teste.com', 'senha123')
     expect(token).toBe('abc')

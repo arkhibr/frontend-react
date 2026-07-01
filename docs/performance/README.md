@@ -16,4 +16,4 @@ npx playwright install chromium
 npm run test:perf
 ```
 
-Design e instrumentação: [`docs/superpowers/specs/2026-06-29-mfe-load-perf-report-design.md`](../superpowers/specs/2026-06-29-mfe-load-perf-report-design.md) e `src/app/mfe/perf.ts`.
+Instrumentação: `src/app/mfe/perf.ts`.

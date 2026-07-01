@@ -36,7 +36,7 @@ describe('MfeHost', () => {
   it('chama mount com a div e o contexto quando active', async () => {
     renderHost(entry)
     await waitFor(() => expect(mount).toHaveBeenCalledTimes(1))
-    const [el, ctx] = mount.mock.calls[0]
+    const [el, ctx] = mount.mock.calls[0]!
     expect(el).toBeInstanceOf(HTMLElement)
     expect(ctx).toMatchObject({ basePath: '/endereco' })
     expect(typeof ctx.onUnauthorized).toBe('function')

@@ -130,23 +130,23 @@ Em modo de desenvolvimento o MSW é ativado automaticamente; com `apiUrl` vazio,
 
 ## Rodando a plataforma completa (shell + MFE + S3)
 
-Para exercitar o carregamento dinâmico real de um MFE a partir do S3 (LocalStack):
+Para exercitar o carregamento dinâmico real dos MFEs a partir do S3 (LocalStack):
 
 ```bash
-# 1. Subir o LocalStack (S3 em :4566) — ver infra/README.md
-docker compose -f infra/docker-compose.yml up -d
-
-# 2. Buildar e publicar o MFE no bucket — ver mfes/endereco/README.md
-cd mfes/endereco
+# 1. Instalar as deps do shell (na raiz)
 npm install
-npm run build && npm run deploy      # gera dist/endereco.js e sobe ao bucket mfe-endereco
 
-# 3. Subir o shell (na raiz)
-cd ../..
-npm run dev
+# 2. Publicar todos os MFEs no S3
+npm run deploy       # sobe o LocalStack se preciso, instala deps,
+                     # builda e valida cada bundle no bucket
+
+# 3. Subir o shell
+npm run dev          # http://localhost:5173
 ```
 
-O shell lê [`public/mfe-manifest.json`](public/mfe-manifest.json), encontra a entrada do MFE de endereço e o monta dinamicamente ao acessar `/endereco`. O fluxo ponta a ponta (carga dinâmica + isolamento de falha) é coberto por [`tests/e2e/mfe-endereco.spec.ts`](tests/e2e/mfe-endereco.spec.ts).
+O `npm run deploy` da raiz é self-contained e pensado para um ambiente limpo: se o LocalStack (`:4566`) não estiver no ar ele o sobe via `docker compose`; para cada MFE, roda `npm ci` quando faltam dependências, builda e delega o upload ao `deploy` do próprio MFE, confirmando ao final que cada bundle responde `200`. Para publicar um MFE isolado, `cd mfes/<id> && npm run deploy` continua funcionando (exige o LocalStack já no ar).
+
+O shell lê [`public/mfe-manifest.json`](public/mfe-manifest.json), encontra as entradas dos MFEs e os monta dinamicamente ao acessar suas rotas. O fluxo ponta a ponta (carga dinâmica + isolamento de falha) é coberto por [`tests/e2e/mfe-endereco.spec.ts`](tests/e2e/mfe-endereco.spec.ts).
 
 ## Comandos
 
@@ -156,6 +156,7 @@ O shell lê [`public/mfe-manifest.json`](public/mfe-manifest.json), encontra a e
 |---------|-----------|
 | `npm run dev` | Servidor de desenvolvimento (Vite) com HMR (Hot Module Replacement) |
 | `npm run build` | Compila TS + Vite e gera `dist/` |
+| `npm run deploy` | Sobe o LocalStack se preciso, builda e publica **todos os MFEs** no S3, validando cada bundle |
 | `npm run preview` | Serve o `dist/` localmente |
 | `npm run test` | Testes unitários e de integração (Vitest) |
 | `npm run test:watch` | Vitest em modo watch |
