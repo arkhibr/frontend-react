@@ -4,9 +4,9 @@
 
 **Goal:** Criar o serviço `gateway/` — porta única de entrada entre os MFEs e os futuros BFFs — com correlação de requisição, controle de tráfego (rate limiting) e auditoria, mais o roteamento por prefixo de path para os BFFs.
 
-**Architecture:** Serviço Express 5 independente (próprio `package.json`), rodando via `node --experimental-strip-types` (mesma técnica já usada em `scripts/deploy.ts` na raiz do repo). Pipeline de middlewares: `correlationId → auditLog (escuta o evento 'finish', não bloqueia) → rateLimit (global + mutações) → proxy por prefixo /bff/<nome>`. `createApp(config)` é exportado separado do bootstrap (`index.ts`) para permitir testar com `supertest` sem abrir porta real.
+**Architecture:** Serviço Express 5 independente (próprio `package.json`), rodando via `node --experimental-strip-types` (mesma técnica já usada em `scripts/deploy.ts` na raiz do repo). Pipeline de middlewares: `correlationId → cors → auditLog (escuta o evento 'finish', não bloqueia) → rateLimit (global + mutações) → proxy por prefixo /bff/<nome>`. O shell (`http://localhost:5173`) chama o Gateway (`http://localhost:4000`) como origem cruzada — por isso o CORS entra cedo no pipeline, antes da auditoria. `createApp(config)` é exportado separado do bootstrap (`index.ts`) para permitir testar com `supertest` sem abrir porta real.
 
-**Tech Stack:** Node.js (`node --experimental-strip-types`), TypeScript, Express 5, `express-rate-limit`, `http-proxy-middleware`, Vitest, `supertest`.
+**Tech Stack:** Node.js (`node --experimental-strip-types`), TypeScript, Express 5, `cors`, `express-rate-limit`, `http-proxy-middleware`, Vitest, `supertest`.
 
 ## Global Constraints
 
@@ -29,7 +29,7 @@
 - Test: `gateway/src/__tests__/config.test.ts`
 
 **Interfaces:**
-- Produces: `export interface GatewayConfig { port: number; bffs: Record<string, string>; rateLimit: { windowMs: number; globalMax: number; mutatingMax: number }; auditLogPath: string }` e `export function loadConfig(env?: NodeJS.ProcessEnv): GatewayConfig` — usados por todas as tarefas seguintes deste plano.
+- Produces: `export interface GatewayConfig { port: number; corsOrigin: string; bffs: Record<string, string>; rateLimit: { windowMs: number; globalMax: number; mutatingMax: number }; auditLogPath: string }` e `export function loadConfig(env?: NodeJS.ProcessEnv): GatewayConfig` — usados por todas as tarefas seguintes deste plano.
 
 - [ ] **Step 1: Criar `gateway/package.json`**
 
@@ -47,11 +47,13 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
     "http-proxy-middleware": "^3.0.3"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.3",
     "@types/node": "^24.12.3",
     "@types/supertest": "^6.0.3",
@@ -126,6 +128,7 @@ describe('loadConfig', () => {
     const config = loadConfig({})
 
     expect(config.port).toBe(4000)
+    expect(config.corsOrigin).toBe('http://localhost:5173')
     expect(config.bffs.emprestimo).toBe('http://localhost:4001')
     expect(config.bffs.endereco).toBe('http://localhost:4002')
     expect(config.rateLimit.windowMs).toBe(60_000)
@@ -137,6 +140,7 @@ describe('loadConfig', () => {
   it('usa valores de env var quando definidos', () => {
     const config = loadConfig({
       PORT: '5000',
+      CORS_ORIGIN: 'https://portal.exemplo.com',
       BFF_EMPRESTIMO_URL: 'http://bff-emprestimo:4001',
       BFF_ENDERECO_URL: 'http://bff-endereco:4002',
       RATE_LIMIT_GLOBAL_MAX: '50',
@@ -145,6 +149,7 @@ describe('loadConfig', () => {
     })
 
     expect(config.port).toBe(5000)
+    expect(config.corsOrigin).toBe('https://portal.exemplo.com')
     expect(config.bffs.emprestimo).toBe('http://bff-emprestimo:4001')
     expect(config.bffs.endereco).toBe('http://bff-endereco:4002')
     expect(config.rateLimit.globalMax).toBe(50)
@@ -164,6 +169,7 @@ Expected: FAIL — `Cannot find module '../config.ts'` (arquivo ainda não exist
 ```typescript
 export interface GatewayConfig {
   port: number
+  corsOrigin: string
   bffs: Record<string, string>
   rateLimit: {
     windowMs: number
@@ -176,6 +182,7 @@ export interface GatewayConfig {
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): GatewayConfig {
   return {
     port: Number(env.PORT ?? 4000),
+    corsOrigin: env.CORS_ORIGIN ?? 'http://localhost:5173',
     bffs: {
       emprestimo: env.BFF_EMPRESTIMO_URL ?? 'http://localhost:4001',
       endereco: env.BFF_ENDERECO_URL ?? 'http://localhost:4002',
@@ -653,7 +660,7 @@ git commit -m "feat(gateway): auditoria de tráfego em JSON lines"
 - Test: `gateway/src/__tests__/app.test.ts`
 
 **Interfaces:**
-- Consumes: `correlationId` (Task 2), `createAuditLog` (Task 5), `createRateLimiters` (Task 4), `GatewayConfig` (Task 1).
+- Consumes: `correlationId` (Task 2), `createAuditLog` (Task 5), `createRateLimiters` (Task 4), `GatewayConfig` (Task 1, inclui `corsOrigin`).
 - Produces: `export function createProxyRouter(bffs: Record<string, string>): Router` e `export function createApp(config: GatewayConfig): Application` — `createApp` é o que `index.ts` (Task 7) usa para subir o servidor, e é o que os testes de integração usam via `supertest`.
 
 - [ ] **Step 1: Escrever o teste que falha**
@@ -699,6 +706,7 @@ function buildConfig(bffs: Record<string, string>): GatewayConfig {
   tempDir = mkdtempSync(join(tmpdir(), 'gateway-app-'))
   return {
     port: 0,
+    corsOrigin: 'http://localhost:5173',
     bffs,
     rateLimit: { windowMs: 60_000, globalMax: 100, mutatingMax: 20 },
     auditLogPath: join(tempDir, 'audit.log'),
@@ -723,6 +731,16 @@ describe('createApp', () => {
 
     expect(res.status).toBe(404)
     expect(res.body.error).toBe('not_found')
+  })
+
+  it('libera CORS para a origem configurada', async () => {
+    const config = buildConfig({})
+
+    const res = await request(createApp(config))
+      .get('/bff/inexistente/foo')
+      .set('Origin', 'http://localhost:5173')
+
+    expect(res.headers['access-control-allow-origin']).toBe('http://localhost:5173')
   })
 })
 ```
@@ -774,6 +792,7 @@ export function createProxyRouter(bffs: Record<string, string>): Router {
 - [ ] **Step 4: Criar `gateway/src/app.ts`**
 
 ```typescript
+import cors from 'cors'
 import express from 'express'
 import type { Application } from 'express'
 import { correlationId } from './correlationId.ts'
@@ -786,6 +805,7 @@ export function createApp(config: GatewayConfig): Application {
   const app = express()
 
   app.use(correlationId)
+  app.use(cors({ origin: config.corsOrigin }))
   app.use(createAuditLog(config.auditLogPath, config.bffs))
 
   const { global, mutating } = createRateLimiters(config.rateLimit)
@@ -895,6 +915,7 @@ npm run test:coverage
 | Variável | Descrição | Padrão |
 |---|---|---|
 | `PORT` | Porta do Gateway | `4000` |
+| `CORS_ORIGIN` | Origem liberada para chamadas cross-origin (o shell) | `http://localhost:5173` |
 | `BFF_EMPRESTIMO_URL` | URL base do BFF de empréstimo | `http://localhost:4001` |
 | `BFF_ENDERECO_URL` | URL base do BFF de endereço | `http://localhost:4002` |
 | `RATE_LIMIT_GLOBAL_MAX` | Requisições/minuto por IP (todas as rotas) | `100` |
