@@ -13,7 +13,7 @@ function tooManyRequests(_req: Request, res: Response): void {
   res.status(429).json({
     error: 'rate_limit_exceeded',
     message: 'Limite de requisições excedido.',
-    correlationId: res.locals.correlationId as string,
+    correlationId: (res.locals.correlationId as string | undefined) ?? 'unknown',
   })
 }
 
