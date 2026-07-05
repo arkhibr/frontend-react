@@ -35,7 +35,15 @@ export function createAuditLog(logPath: string, bffs: Record<string, string>): R
         clientIp: req.ip ?? 'unknown',
       }
 
-      appendFileSync(logPath, `${JSON.stringify(entry)}\n`)
+      try {
+        appendFileSync(logPath, `${JSON.stringify(entry)}\n`)
+      } catch (error) {
+        console.error(
+          '[audit] failed to write audit entry',
+          { error, entry: entry.correlationId },
+          error instanceof Error ? error.message : String(error),
+        )
+      }
     })
 
     next()
