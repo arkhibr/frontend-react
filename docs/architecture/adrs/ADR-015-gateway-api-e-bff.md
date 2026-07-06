@@ -77,30 +77,8 @@ Concentrar auditoria e controle de tráfego no Gateway evita duplicar essas resp
 
 ### Diagrama — Containers com Gateway e BFFs
 
-```mermaid
-%%{init: {'theme': 'dark'}}%%
-graph LR
-    user(["👤 Usuário"])
+<img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/f28cda3c-11d3-4f59-9385-238c90c91175" />
 
-    subgraph browser["Navegador"]
-        shell["Shell nuclear\nReact 19 · auth · layout · router"]
-        mfe["MFE (ex: empréstimo)\nbundle ESM autônomo"]
-    end
-
-    gateway["Gateway\nExpress · correlação · CORS\nauditoria · controle de tráfego"]
-    bffEmprestimo["BFF-emprestimo\ntransforma PascalCase → camelCase"]
-    bffEndereco["BFF-endereco\npassthrough"]
-
-    legado["Back-end legado simulado\nfixtures internas por BFF"]
-
-    user -->|"HTTPS"| shell
-    shell -->|"monta na rota"| mfe
-    mfe -->|"HTTPS + Bearer JWT\napiUrl → Gateway"| gateway
-    gateway -->|"/bff/emprestimo/*"| bffEmprestimo
-    gateway -->|"/bff/endereco/*"| bffEndereco
-    bffEmprestimo --> legado
-    bffEndereco --> legado
-```
 
 ## Consequências
 
