@@ -19,20 +19,28 @@ export function createAuditLog(logPath: string, bffs: Record<string, string>): R
 
   return function auditLog(req: Request, res: Response, next: NextFunction): void {
     const startedAt = process.hrtime.bigint()
+    // Capturados de forma síncrona, antes de next(): uma vez que a requisição entra em um
+    // sub-router montado em prefixo (ex.: proxy para /bff/<nome>), o Express reescreve
+    // req.url/req.path removendo o prefixo, e só o restaura se o handler montado chamar
+    // next(). O proxy real finaliza a resposta diretamente, sem chamar next(), então
+    // ler req.path/req.method dentro do callback 'finish' pegaria o valor já mutado.
+    const capturedMethod = req.method
+    const capturedPath = req.path
+    const capturedClientIp = req.ip ?? 'unknown'
+    const capturedTarget = resolveTarget(capturedPath, bffs)
 
     res.on('finish', () => {
       const durationNs = process.hrtime.bigint() - startedAt
-      const target = resolveTarget(req.path, bffs)
 
       const entry: AuditEntry = {
         timestamp: new Date().toISOString(),
         correlationId: (res.locals.correlationId as string | undefined) ?? 'unknown',
-        method: req.method,
-        path: req.path,
-        targetBff: target?.name ?? null,
+        method: capturedMethod,
+        path: capturedPath,
+        targetBff: capturedTarget?.name ?? null,
         status: res.statusCode,
         durationMs: Math.round(Number(durationNs) / 1000) / 1000,
-        clientIp: req.ip ?? 'unknown',
+        clientIp: capturedClientIp,
       }
 
       try {

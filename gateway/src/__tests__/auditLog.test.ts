@@ -58,4 +58,26 @@ describe('createAuditLog', () => {
     const entry = JSON.parse(readFileSync(logPath, 'utf-8').trim())
     expect(entry.targetBff).toBeNull()
   })
+
+  it('registra o path original quando um sub-router monta em prefixo e finaliza sem chamar next (como o proxy real)', async () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'gateway-audit-'))
+    const logPath = join(tempDir, 'audit.log')
+    const app = express()
+    app.use(correlationId)
+    app.use(createAuditLog(logPath, { emprestimo: 'http://localhost:4001' }))
+
+    const subRouter = express.Router()
+    // Mimic http-proxy-middleware: finaliza a resposta diretamente, sem chamar next(),
+    // deixando req.url/req.path com o prefixo '/bff/emprestimo' já removido pelo Express.
+    subRouter.get('/contratos', (_req, res) => {
+      res.json([])
+    })
+    app.use('/bff/emprestimo', subRouter)
+
+    await request(app).get('/bff/emprestimo/contratos').expect(200)
+
+    const entry = JSON.parse(readFileSync(logPath, 'utf-8').trim())
+    expect(entry.path).toBe('/bff/emprestimo/contratos')
+    expect(entry.targetBff).toBe('emprestimo')
+  })
 })
