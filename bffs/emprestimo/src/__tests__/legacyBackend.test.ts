@@ -53,6 +53,49 @@ describe('legacyBackend — propostas', () => {
   it('respostaInsercaoProposta usa o número do contrato gerado', () => {
     expect(respostaInsercaoProposta('PRP-2026-0102')).toEqual({ numeroDoContrato: 'PRP-2026-0102' })
   })
+
+  it('criarProposta gera números de contrato sequenciais em chamadas sucessivas', () => {
+    const primeira = criarProposta({ LinhaCredito: 205, ValorLiquido: 5000, NumeroParcelas: 12 })
+    const segunda = criarProposta({ LinhaCredito: 205, ValorLiquido: 5000, NumeroParcelas: 12 })
+
+    expect(primeira.Contrato).toBe('PRP-2026-0102')
+    expect(segunda.Contrato).toBe('PRP-2026-0103')
+  })
+
+  it('criarProposta usa fallback de linha de crédito desconhecida', () => {
+    const proposta = criarProposta({ LinhaCredito: 999, ValorLiquido: 1000, NumeroParcelas: 6 })
+
+    expect(proposta.DescricaoDaLinha).toBe('Linha 999')
+    expect(proposta.TaxaDeJuros).toBe(0)
+  })
+
+  it('criarProposta usa a data atual quando DataLiberacao não é informada', () => {
+    const antes = new Date().toISOString()
+    const proposta = criarProposta({ LinhaCredito: 205, ValorLiquido: 1000, NumeroParcelas: 6 })
+    const depois = new Date().toISOString()
+
+    expect(proposta.DataDeEmissao).not.toContain('T12:00:00')
+    expect(proposta.DataDeEmissao >= antes && proposta.DataDeEmissao <= depois).toBe(true)
+  })
+
+  it('criarProposta aplica fallback de zero/um para entradas numéricas inválidas ou ausentes', () => {
+    const proposta = criarProposta({
+      LinhaCredito: 205, ValorLiquido: undefined as unknown as number, NumeroParcelas: undefined as unknown as number,
+    })
+
+    expect(proposta.ValorLiquido).toBe(0)
+    expect(proposta.ValorBruto).toBe(0)
+    expect(proposta.NumeroDeParcelas).toBe(1)
+  })
+
+  it('criarProposta aplica fallback de zero quando ValorLiquido é uma string não numérica', () => {
+    const proposta = criarProposta({
+      LinhaCredito: 205, ValorLiquido: 'abc' as unknown as number, NumeroParcelas: 6,
+    })
+
+    expect(proposta.ValorLiquido).toBe(0)
+    expect(proposta.ValorBruto).toBe(0)
+  })
 })
 
 describe('legacyBackend — consultas', () => {
