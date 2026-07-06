@@ -1,0 +1,20 @@
+{
+  "Contrato": "123456-7",
+  "Conta": "998877",
+  "CodigoDaLinha": 101,
+  "DescricaoDaLinha": "Crédito Pessoal",
+  "ValorLiberado": 15000,
+  "ValorBruto": 16250,
+  "SaldoAtual": 9245.5,
+  "NumeroDeParcelas": 24,
+  "ParcelasRestantes": 14,
+  "TaxaDeJuros": 1.89,
+  "TaxaDaCETMensal": 2.11,
+  "TaxaDaCETAnual": 28.7,
+  "ProximaParcela": {
+    "Vencimento": "2026-07-10",
+    "FormaDePagamento": 1,
+    "Valor": 944.3
+  },
+  "ParcelasEmAtraso": []
+}

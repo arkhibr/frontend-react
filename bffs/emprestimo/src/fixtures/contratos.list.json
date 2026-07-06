@@ -1,0 +1,59 @@
+[
+  {
+    "Contrato": "123456-7",
+    "Conta": "998877",
+    "CodigoDaLinha": 101,
+    "DescricaoDaLinha": "Crédito Pessoal",
+    "ValorLiberado": 15000,
+    "ValorBruto": 16250,
+    "SaldoAtual": 9245.5,
+    "NumeroDeParcelas": 24,
+    "ParcelasRestantes": 14,
+    "VencimentoDoContrato": "2027-08-10",
+    "DataDeVencimentoInicial": "2025-09-10",
+    "DataDeLiberacaoDoContrato": "2025-08-21",
+    "TaxaDeJuros": 1.89,
+    "TaxaDaCETMensal": 2.11,
+    "TaxaDaCETAnual": 28.7,
+    "TemParcelasEmAtraso": false,
+    "Quitado": false,
+    "ProximaParcela": {
+      "Vencimento": "2026-07-10",
+      "FormaDePagamento": 1,
+      "Valor": 944.3
+    },
+    "ParcelasEmAtraso": []
+  },
+  {
+    "Contrato": "654321-0",
+    "Conta": "998877",
+    "CodigoDaLinha": 205,
+    "DescricaoDaLinha": "Refinanciamento Consignado",
+    "ValorLiberado": 8300,
+    "ValorBruto": 9000,
+    "SaldoAtual": 4132.99,
+    "NumeroDeParcelas": 18,
+    "ParcelasRestantes": 8,
+    "VencimentoDoContrato": "2027-02-05",
+    "TaxaDeJuros": 1.49,
+    "TaxaDaCETMensal": 1.72,
+    "TaxaDaCETAnual": 22.8,
+    "TemParcelasEmAtraso": true,
+    "ProximaParcela": {
+      "Vencimento": "2026-07-05",
+      "FormaDePagamento": 1,
+      "Valor": 615.8
+    },
+    "ParcelasEmAtraso": [
+      {
+        "NumeroDoContrato": "654321-0",
+        "VencimentoDaParcela": "2026-05-05",
+        "ValorDaPrestacao": 615.8,
+        "ValorDoSaldoAtual": 4320.12,
+        "LinhaDeEmprestimo": "Refinanciamento Consignado",
+        "DataDoProximoVencimento": "2026-07-05",
+        "ValorNoProximoVencimento": 630.1
+      }
+    ]
+  }
+]

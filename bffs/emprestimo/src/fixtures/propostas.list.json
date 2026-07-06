@@ -1,0 +1,18 @@
+[
+  {
+    "Contrato": "PRP-2026-0001",
+    "CodigoDaLinha": 205,
+    "DescricaoDaLinha": "Refinanciamento Consignado",
+    "TaxaDeJuros": 1.39,
+    "DataDeEmissao": "2026-06-20T10:15:00",
+    "ValorBruto": 12000,
+    "ValorLiquido": 10850,
+    "NumeroDeParcelas": 24,
+    "ValorPrevistoDaPrimeiraParcela": 645.2,
+    "StatusDaProposta": {
+      "Key": "P",
+      "Value": "Pendente"
+    },
+    "CpfDoCliente": "12345678901"
+  }
+]
