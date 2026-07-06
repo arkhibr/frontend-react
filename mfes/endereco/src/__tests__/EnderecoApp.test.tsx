@@ -25,7 +25,7 @@ describe('EnderecoApp', () => {
     await waitFor(() => expect(screen.getByLabelText(/Logradouro/i)).toHaveValue('Praça da Sé'))
     await userEvent.click(screen.getByRole('button', { name: /Salvar/i }))
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent(/atualizado/i))
-    expect(fetchMock).toHaveBeenCalledWith('http://api/usuario/endereco', expect.objectContaining({ method: 'PUT' }))
+    expect(fetchMock).toHaveBeenCalledWith('http://api/bff/endereco/usuario/endereco', expect.objectContaining({ method: 'PUT' }))
   })
 
   it('cai para formulário vazio quando a API falha', async () => {

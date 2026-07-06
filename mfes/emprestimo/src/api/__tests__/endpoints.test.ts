@@ -14,7 +14,7 @@ describe('endpoints', () => {
     vi.stubGlobal('fetch', fetchMock)
     const api = createApi(ctx)
     const res = await api.listarContratos()
-    expect(fetchMock).toHaveBeenCalledWith('http://api/contratos', expect.any(Object))
+    expect(fetchMock).toHaveBeenCalledWith('http://api/bff/emprestimo/contratos', expect.any(Object))
     expect(res[0].numero).toBe('1')
   })
 
@@ -23,7 +23,7 @@ describe('endpoints', () => {
     const api = createApi(ctx)
     await api.simularMultiplas({ linhaDeCredito: 205, valorLiquido: 10000, numeroDeParcelas: [24] })
     expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-      'http://api/simulacao/multiplas',
+      'http://api/bff/emprestimo/simulacao/multiplas',
       expect.objectContaining({ method: 'POST' }),
     )
   })
@@ -74,7 +74,7 @@ describe('endpoints', () => {
     const api = createApi(ctx)
     const result = await api.enviarProposta({ valorLiquido: 10000, numeroParcelas: 24, linhaCredito: 205 })
     expect(result.numeroDoContrato).toBe('CTR-100')
-    expect(vi.mocked(fetch)).toHaveBeenCalledWith('http://api/propostas', expect.objectContaining({ method: 'POST' }))
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith('http://api/bff/emprestimo/propostas', expect.objectContaining({ method: 'POST' }))
   })
 
   it('assinarTermo faz POST em /termos/assinar', async () => {
