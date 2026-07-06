@@ -33,3 +33,4 @@ infra/.localstack/
 
 # Specs/planos de desenvolvimento — informação local apenas, não versionada
 docs/dev-specs/
+docs/superpowers/
