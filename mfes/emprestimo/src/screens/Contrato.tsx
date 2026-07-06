@@ -1,7 +1,6 @@
 import type { EmprestimoApi } from '../api/endpoints'
 import type { View } from '../domain'
 import { useAsync } from '../hooks/useAsync'
-import { toContrato } from '../mappers'
 import { HeaderMarca, CardBase, ActionButton, ChipStatus, Metric } from '../components/ui'
 
 const moeda = (valor: number) => valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -14,7 +13,7 @@ export function Contrato(
   const { data, loading, error } = useAsync(() => api.obterContrato(contrato), [contrato])
   if (loading) return (<section className="emprestimo-screen"><HeaderMarca titulo="Contrato" onVoltar={voltar} /><p className="emprestimo-feedback">Carregando contrato...</p></section>)
   if (error || !data) return (<section className="emprestimo-screen"><HeaderMarca titulo="Contrato" onVoltar={voltar} /><p role="alert">Falha ao carregar o contrato.</p></section>)
-  const c = toContrato(data)
+  const c = data
   return (
     <section className="emprestimo-screen">
       <HeaderMarca titulo={`Contrato ${c.numero}`} subtitulo={c.linhaDeCredito} onVoltar={voltar} />

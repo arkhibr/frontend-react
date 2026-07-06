@@ -2,7 +2,6 @@ import { useState } from 'react'
 import type { EmprestimoApi } from '../api/endpoints'
 import type { View } from '../domain'
 import { useAsync } from '../hooks/useAsync'
-import { toContrato, toProposta } from '../mappers'
 import { HeaderMarca, CardBase, ChipStatus, ActionButton, Metric, EmptyState } from '../components/ui'
 
 const moeda = (valor: number) => valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -12,8 +11,8 @@ export function ContratosPropostas({ api, ir }: { api: EmprestimoApi; ir: (v: Vi
   const [aba, setAba] = useState<'contratos' | 'propostas'>('contratos')
   const contratos = useAsync(() => api.listarContratos(), [])
   const propostas = useAsync(() => api.listarPropostas(), [])
-  const listaContratos = (contratos.data ?? []).map(toContrato)
-  const listaPropostas = (propostas.data ?? []).map(toProposta)
+  const listaContratos = contratos.data ?? []
+  const listaPropostas = propostas.data ?? []
   const saldoTotal = listaContratos.reduce((total, contrato) => total + contrato.saldoAtual, 0)
   const contratosEmAtraso = listaContratos.filter((contrato) => contrato.temAtraso).length
 
