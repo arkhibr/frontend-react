@@ -5,8 +5,9 @@ export interface HttpClientDeps {
 }
 
 export function createHttpClient(deps: HttpClientDeps) {
+  const prefix = deps.apiUrl ? '/bff/endereco' : ''
   return async function client<T>(path: string, options: RequestInit = {}): Promise<T> {
-    const res = await fetch(`${deps.apiUrl}${path}`, {
+    const res = await fetch(`${deps.apiUrl}${prefix}${path}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
