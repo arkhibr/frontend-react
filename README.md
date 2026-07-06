@@ -24,7 +24,7 @@
 
 ## Conceito
 
-O repositório desempenha o papel de **shell nuclear**: um núcleo estável que cuida de autenticação, layout, roteamento e do carregamento dos MFEs. Funcionalidades de negócio entram e saem da plataforma **sem recompilar o shell** — basta declará-las no manifesto. Cada MFE é construído, versionado e implantado de forma independente, empacota o próprio React e se comunica apenas com o back-end (via `apiUrl`), nunca com outros MFEs.
+O repositório desempenha o papel de **shell nuclear**: um núcleo estável que cuida de autenticação, layout, roteamento e do carregamento dos MFEs. Funcionalidades de negócio entram e saem da plataforma **sem recompilar o shell** — basta declará-las no manifesto. Cada MFE é construído, versionado e implantado de forma independente, empacota o próprio React e se comunica apenas com o back-end (via `apiUrl`), nunca com outros MFEs. A partir da ADR-015, "o back-end" é o Gateway de API — que roteia, audita e aplica controle de tráfego antes de encaminhar cada requisição ao BFF do MFE correspondente.
 
 <img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/e9426edc-acb4-431a-b159-fcb782b84c03" />
 
@@ -60,8 +60,13 @@ frontend-react/
 │   ├── shared/               ← infraestrutura, UI base, config, tipos
 │   └── mocks/                ← MSW (back-end simulado em dev/testes)
 ├── mfes/
-│   └── endereco/             ← MFE autônomo (package.json/vite/vitest/deploy próprios)
-├── infra/                    ← docker-compose com LocalStack (S3)
+│   ├── endereco/             ← MFE autônomo (package.json/vite/vitest/deploy próprios)
+│   └── emprestimo/           ← MFE autônomo
+├── gateway/                  ← Gateway de API (Express) — porta única de entrada (ADR-015)
+├── bffs/
+│   ├── emprestimo/           ← BFF do MFE de empréstimo — transforma o contrato legado
+│   └── endereco/             ← BFF do MFE de endereço
+├── infra/                    ← docker-compose com LocalStack (S3) e Gateway+BFFs
 ├── tests/e2e/                ← testes Playwright (inclui fluxo de MFE)
 ├── docs/architecture/        ← C4, mapa de módulos e ADRs
 └── public/
@@ -89,6 +94,9 @@ Além disso, o padrão de organização de pastas chamado FSD (Feature Sliced De
 | MFE de endereço | MFE de exemplo, ponta a ponta | [`mfes/endereco/README.md`](mfes/endereco/README.md) |
 | Infra local | LocalStack S3 | [`infra/README.md`](infra/README.md) |
 | Segurança | CSP, cabeçalhos, Trusted Types, rollout | [`SECURITY.md`](SECURITY.md) |
+| Gateway de API | Roteamento, correlação, auditoria e controle de tráfego | [`gateway/README.md`](gateway/README.md) |
+| BFF de empréstimo | Transformação de contrato legado → limpo | [`bffs/emprestimo/README.md`](bffs/emprestimo/README.md) |
+| BFF de endereço | Passthrough do contrato de endereço | [`bffs/endereco/README.md`](bffs/endereco/README.md) |
 
 
 ## Pilha Tecnológica Adotada
@@ -116,6 +124,7 @@ Em [`docs/architecture/adrs/`](docs/architecture/adrs/). As ADRs 008–014 cobre
 | [ADR-012](docs/architecture/adrs/ADR-012-content-security-policy.md) | **Content Security Policy estrito e baseline de segurança** |
 | [ADR-013](docs/architecture/adrs/ADR-013-trusted-types-e-reporting.md) | **Trusted Types e Reporting API** |
 | [ADR-014](docs/architecture/adrs/ADR-014-css-e-contrato-visual-em-microfrontends.md) | **CSS e contrato visual em microfrontends dinâmicos** |
+| [ADR-015](docs/architecture/adrs/ADR-015-gateway-api-e-bff.md) | **Gateway de API com BFFs** |
 
 ## Desenvolvimento local
 
@@ -147,6 +156,24 @@ npm run dev          # http://localhost:5173
 O `npm run deploy` da raiz é self-contained e pensado para um ambiente limpo: se o LocalStack (`:4566`) não estiver no ar ele o sobe via `docker compose`; para cada MFE, roda `npm ci` quando faltam dependências, builda e delega o upload ao `deploy` do próprio MFE, confirmando ao final que cada bundle responde `200`. Para publicar um MFE isolado, `cd mfes/<id> && npm run deploy` continua funcionando (exige o LocalStack já no ar).
 
 O shell lê [`public/mfe-manifest.json`](public/mfe-manifest.json), encontra as entradas dos MFEs e os monta dinamicamente ao acessar suas rotas. O fluxo ponta a ponta (carga dinâmica + isolamento de falha) é coberto por [`tests/e2e/mfe-endereco.spec.ts`](tests/e2e/mfe-endereco.spec.ts).
+
+## Rodando Gateway + BFFs (ADR-015)
+
+Em três terminais separados, na raiz do repositório:
+
+```bash
+cd bffs/endereco && npm install && npm run dev    # http://localhost:4002
+cd bffs/emprestimo && npm install && npm run dev  # http://localhost:4001
+cd gateway && npm install && npm run dev          # http://localhost:4000
+```
+
+Ou via Docker Compose, subindo os três de uma vez:
+
+```bash
+docker compose -f infra/docker-compose.yml up -d --build gateway bff-emprestimo bff-endereco
+```
+
+Com o Gateway no ar, configure `dist/config.json` (ou `public/config.json` em dev) com `"apiUrl": "http://localhost:4000"` e suba o shell normalmente (`npm run dev`).
 
 ## Comandos
 
@@ -193,6 +220,8 @@ Detalhada em [ADR-005](docs/architecture/adrs/ADR-005-testes.md).
 | `primaryColor` | Cor primária (CSS var `--color-primary`) | `#1A56DB` |
 | `secondaryColor` | Cor secundária (CSS var `--color-secondary`) | `#6B7280` |
 
+Para rodar a plataforma completa com Gateway e BFFs (ver ADR-015), aponte `apiUrl` para o Gateway: `"apiUrl": "http://localhost:4000"`. Sem Gateway/BFFs no ar, mantenha `apiUrl` vazio para usar o MSW.
+
 Em dev, `apiUrl` vazio direciona as chamadas ao MSW. Em produção, gere/monte o `config.json` com os valores corretos antes de servir o `dist/`.
 
 | Variável | Descrição | Exemplo |
@@ -210,6 +239,7 @@ Em dev, `apiUrl` vazio direciona as chamadas ao MSW. Em produção, gere/monte o
 4. `npm run build` — gera `dist/`
 5. Copiar/montar `dist/` no host (wwwroot, container ou CDN — Content Delivery Network)
 6. Configurar `dist/config.json` (`apiUrl`, cores)
+6.1. Se usando Gateway+BFFs (ADR-015): publicar as três imagens (`gateway/Dockerfile`, `bffs/emprestimo/Dockerfile`, `bffs/endereco/Dockerfile`) e apontar `apiUrl` do `config.json` para a URL pública do Gateway
 7. Publicar `dist/mfe-manifest.json` com as entradas dos MFEs de produção
 8. Validar CSP (Content Security Policy) e **CORS** dos buckets de MFE (o `import()` é cross-origin) — seguir o **playbook de rollout** em [`SECURITY.md`](SECURITY.md) (Report-Only → analisar → enforce); conferir `CSP_CONNECT_SRC`/`CSP_REPORT_URI` do ambiente
 9. Smoke test funcional (login → dashboard → MFE)
