@@ -11,7 +11,6 @@ export function createProxyRouter(bffs: Record<string, string>): Router {
       createProxyMiddleware({
         target,
         changeOrigin: true,
-        pathRewrite: { [`^/bff/${name}`]: '' },
         on: {
           proxyReq: (proxyReq, _req, res) => {
             const correlationId = (res as unknown as Response).locals.correlationId as string
