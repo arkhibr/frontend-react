@@ -2,7 +2,6 @@ import { useForm } from 'react-hook-form'
 import type { EmprestimoApi } from '../api/endpoints'
 import { useAsync } from '../hooks/useAsync'
 import { useSimulador } from '../hooks/useSimulador'
-import { toLinhaDeCredito } from '../mappers'
 import { HeaderMarca, CardBase, ActionButton, Metric, EmptyState } from '../components/ui'
 import { ResultadoEnvio } from './ResultadoEnvio'
 
@@ -18,7 +17,7 @@ export function Simulador(
   const { register, handleSubmit } = useForm<{ valorLiquido: number; parcelas: number }>()
 
   if (sim.estado.passo === 'parametros') {
-    const linhas = (params.data?.LinhasDeEmprestimo ?? []).map(toLinhaDeCredito)
+    const linhas = params.data ?? []
     return (
       <section className="emprestimo-screen">
         <HeaderMarca titulo="Simular empréstimo" subtitulo="Escolha a linha de crédito para iniciar uma nova proposta." onVoltar={voltar} />

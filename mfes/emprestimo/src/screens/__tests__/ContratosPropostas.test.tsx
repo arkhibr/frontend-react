@@ -16,9 +16,9 @@ function stubFetch(map: Record<string, unknown>) {
 
 describe('ContratosPropostas', () => {
   it('mostra o header de imediato e lista contratos após carregar', async () => {
-    stubFetch({ '/contratos': [{ Contrato: '123456-7', DescricaoDaLinha: 'Crédito Pessoal',
-      CodigoDaLinha: 101, ValorLiberado: 15000, ValorBruto: 16250, SaldoAtual: 9245.5,
-      NumeroDeParcelas: 24, ParcelasRestantes: 14, TaxaDeJuros: 1.89, TemParcelasEmAtraso: false }] })
+    stubFetch({ '/contratos': [{ numero: '123456-7', linhaDeCredito: 'Crédito Pessoal',
+      valorLiberado: 15000, saldoAtual: 9245.5, parcelas: 24, parcelasRestantes: 14,
+      taxaDeJuros: 1.89, cetMensal: 0, cetAnual: 0, temAtraso: false, proximaParcela: null }] })
     const ir = vi.fn()
     render(<ContratosPropostas api={createApi(ctx)} ir={ir} />)
     expect(screen.getByRole('heading', { name: /Empréstimos/i })).toBeInTheDocument()
@@ -26,9 +26,9 @@ describe('ContratosPropostas', () => {
   })
 
   it('clicar num contrato navega para o detalhe', async () => {
-    stubFetch({ '/contratos': [{ Contrato: '123456-7', DescricaoDaLinha: 'Crédito Pessoal',
-      CodigoDaLinha: 101, ValorLiberado: 15000, ValorBruto: 16250, SaldoAtual: 9245.5,
-      NumeroDeParcelas: 24, ParcelasRestantes: 14, TaxaDeJuros: 1.89 }] })
+    stubFetch({ '/contratos': [{ numero: '123456-7', linhaDeCredito: 'Crédito Pessoal',
+      valorLiberado: 15000, saldoAtual: 9245.5, parcelas: 24, parcelasRestantes: 14,
+      taxaDeJuros: 1.89, cetMensal: 0, cetAnual: 0, temAtraso: false, proximaParcela: null }] })
     const ir = vi.fn()
     render(<ContratosPropostas api={createApi(ctx)} ir={ir} />)
     await userEvent.click(await screen.findByText('123456-7'))

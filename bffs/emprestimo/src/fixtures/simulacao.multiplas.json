@@ -1,0 +1,51 @@
+{
+  "PrevisoesDeParcelas": [
+    {
+      "Conta": "998877",
+      "ValorBruto": 11250,
+      "ValorDoSeguro": 180,
+      "ValorDaCAD": 120,
+      "ValorDoIOF": 950,
+      "ValorLiquido": 10000,
+      "TaxaDeJuros": 1.39,
+      "CET": 1.74,
+      "CET_ANUAL": 23.01,
+      "DataDeLiberacao": "2026-06-30",
+      "DataDeVencimentoInicial": "2026-08-05",
+      "DataDeVencimentoFinal": "2028-07-05",
+      "NumeroDeParcelas": 24,
+      "TotalDeAmortizacao": 11250,
+      "TotalDaTaxaDeServico": 600,
+      "TotalDoSeguro": 180,
+      "TotalDaTaxaDeCorrecao": 0,
+      "TotalDeJuros": 3450,
+      "TotalDoValorDasParcelas": 15480,
+      "ValorDoRefinanciamento": 4132.99,
+      "Parcelas": [
+        {
+          "NumeroDaParcela": 1,
+          "DataDeVencimento": "2026-08-05",
+          "ValorDaAmortizacao": 295.45,
+          "ValorDaCorrecao": 0,
+          "ValorDoJuros": 278.32,
+          "ValorDoSeguro": 7.5,
+          "ValorTaxaBancaria": 64.06,
+          "ValorDaPrestacao": 645.33,
+          "ValorDoSaldoAnterior": 11250,
+          "ValorDoJurosCapitalizados": 0,
+          "ValorDoSaldoAtual": 10954.55
+        }
+      ],
+      "DetalhamentoDaCET": {
+        "PorcentagemDeJuros": 79,
+        "PorcentagemDeImpostos": 12,
+        "PorcentagemDeTarifas": 6,
+        "PorcentagemDeServicos": 3
+      },
+      "EncargosEmCasoDeAtraso": {
+        "PercentualDeJurosDeMora": 1,
+        "PercentualDaMulta": 2
+      }
+    }
+  ]
+}

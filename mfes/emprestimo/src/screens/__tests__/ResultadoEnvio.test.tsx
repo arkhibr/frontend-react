@@ -29,8 +29,7 @@ function stub(map: Record<string, unknown>) {
 
 describe('ResultadoEnvio', () => {
   it('simula e mostra a CET do cenário', async () => {
-    stub({ MultiplasSimulacoes: { PrevisoesDeParcelas: [{ NumeroDeParcelas: 24, ValorLiquido: 10000,
-      ValorBruto: 11250, CET: 1.74, CET_ANUAL: 23.01, TotalDoValorDasParcelas: 15480, Parcelas: [] }] } })
+    stub({ 'simulacao/multiplas': [{ parcelas: 24, valorLiquido: 10000, valorBruto: 11250, cet: 1.74, cetAnual: 23.01, totalDasParcelas: 15480 }] })
     render(<ResultadoEnvio api={createApi(ctx)} sim={makeSim('resultado')} voltar={() => {}} />)
     await waitFor(() => expect(screen.getByText(/1\.74/)).toBeInTheDocument())
   })
@@ -42,15 +41,13 @@ describe('ResultadoEnvio', () => {
   })
 
   it('mostra estado de carregando durante a simulação', () => {
-    // fetch nunca resolve
     vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
     render(<ResultadoEnvio api={createApi(ctx)} sim={makeSim('resultado')} voltar={() => {}} />)
     expect(screen.getByText(/Simulando/i)).toBeInTheDocument()
   })
 
   it('passo resultado: botão Continuar chama irPara(termo)', async () => {
-    stub({ MultiplasSimulacoes: { PrevisoesDeParcelas: [{ NumeroDeParcelas: 24, ValorLiquido: 10000,
-      ValorBruto: 11250, CET: 1.74, CET_ANUAL: 23.01, TotalDoValorDasParcelas: 15480, Parcelas: [] }] } })
+    stub({ 'simulacao/multiplas': [{ parcelas: 24, valorLiquido: 10000, valorBruto: 11250, cet: 1.74, cetAnual: 23.01, totalDasParcelas: 15480 }] })
     const sim = makeSim('resultado')
     render(<ResultadoEnvio api={createApi(ctx)} sim={sim} voltar={() => {}} />)
     await waitFor(() => expect(screen.getByText(/Continuar para o termo/i)).toBeInTheDocument())
@@ -60,9 +57,9 @@ describe('ResultadoEnvio', () => {
 
   it('passo termo: mostra texto do termo e botão assinar', async () => {
     stub({
-      TermoDeConsentimento: { TextoDoTermo: 'Ao aceitar você concorda com os termos.' },
-      AssinarTermoDeAceite: true,
-      Variaveis: 'ok',
+      'termos/PropostaWeb': { textoDoTermo: 'Ao aceitar você concorda com os termos.' },
+      'termos/assinar': true,
+      'termos/preencher-variaveis': 'ok',
       propostas: { numeroDoContrato: 'CTR-999' },
     })
     render(<ResultadoEnvio api={createApi(ctx)} sim={makeSim('termo')} voltar={() => {}} />)
@@ -72,7 +69,6 @@ describe('ResultadoEnvio', () => {
 
   it('passo enviado: mostra confirmação de envio', () => {
     vi.stubGlobal('fetch', vi.fn())
-    // passo enviado não faz fetch adicional — apenas exibe o estado
     render(<ResultadoEnvio api={createApi(ctx)} sim={makeSim('enviado')} voltar={() => {}} />)
     expect(screen.getByRole('status')).toBeInTheDocument()
     expect(screen.getByText(/Proposta registrada/i)).toBeInTheDocument()

@@ -1,0 +1,19 @@
+[
+  {
+    "NumeroDaParcela": 10,
+    "DataDeVencimento": "2026-06-10",
+    "ValorDaAmortizacao": 552.67,
+    "ValorDaCorrecao": 0,
+    "ValorDosJuros": 286.12,
+    "ValorDoSeguro": 20.01,
+    "ValorDasTaxas": 85.5,
+    "ValorDaMora": 0,
+    "ValorDaMulta": 0,
+    "ValorDaPrestacao": 944.3,
+    "DataDePagamento": "2026-06-10",
+    "ValorPago": 944.3,
+    "ValorAPagar": 0,
+    "StatusDaParcela": "Quitada",
+    "PermiteVisualizarParcela": true
+  }
+]

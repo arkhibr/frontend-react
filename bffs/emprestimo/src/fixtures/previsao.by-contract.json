@@ -1,0 +1,18 @@
+{
+  "NumeroDoContrato": "123456-7",
+  "Parcelas": [
+    {
+      "NumeroDaParcela": 11,
+      "DataDeVencimento": "2026-07-10",
+      "ValorDaAmortizacao": 560.12,
+      "ValorDaCorrecao": 0,
+      "ValorDoJuros": 278.44,
+      "ValorDoSeguro": 20.01,
+      "ValorTaxaBancaria": 85.73,
+      "ValorDaPrestacao": 944.3,
+      "ValorDoSaldoAnterior": 9805.62,
+      "ValorDoJurosCapitalizados": 0,
+      "ValorDoSaldoAtual": 9245.5
+    }
+  ]
+}

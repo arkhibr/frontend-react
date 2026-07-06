@@ -1,0 +1,8 @@
+{
+  "VersaoDoTermo": 5,
+  "TipoDoTermo": "PROPOSTA_WEB",
+  "TextoDoTermo": "Declaro ciência das condições da proposta.",
+  "VariaveisDosTermos": {
+    "nomeCliente": "João da Silva"
+  }
+}

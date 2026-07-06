@@ -83,3 +83,61 @@ export interface EmprestimoSimulado {
   cetAnual: number
   totalDasParcelas: number
 }
+
+export interface TermoConsentimento {
+  versaoDoTermo?: number
+  tipoDoTermo?: string
+  textoDoTermo?: string
+  variaveisDosTermos?: unknown
+}
+
+export interface DadosTrabalhador {
+  possuiAutorizacaoParaConsulta?: boolean
+  valorBaseMargem?: number
+  valorMargemDisponivel?: number
+}
+
+export interface DataVencimentoContratosAptos {
+  dataDeVencimentoInicial?: string
+  contratosAptosAoRefinanciamento?: unknown[]
+}
+
+export interface SolicitacaoDeProposta {
+  valorLiquido: number
+  numeroParcelas: number
+  linhaCredito: number
+  mesAnoVencimento?: string
+  dataLiberacao?: string
+  tipoDeVencimento?: number
+  diaVencimento?: number
+  numeroDaContaCorrenteParaLiberacaoDoCredito?: number
+  numeroDeContratosDeEmprestimoParaRefinanciamento?: string[]
+  observacao?: string
+  assinaturaDoTermoDeInclusaoDeProposta?: {
+    tipoDoTermoDeAceite?: string
+    sistemaDeOrigem?: string
+    textoDoTermoDeAceite?: string
+  }
+}
+
+export interface PropostaEnviada {
+  numeroDoContrato: string
+}
+
+export interface SimulacaoRequest {
+  linhaDeCredito: number
+  dataDeLiberacao?: string
+  valorLiquido: number
+  valorDaCad?: number
+  numeroDeParcelas: number[]
+  taxaContratual?: number
+  tipoDeVencimento?: number
+  diaDeVencimento?: number
+  mesAnoDeVencimento?: string
+  numeroDosContratosHaRefinanciar?: string[]
+}
+
+export interface AssinarTermoRequest {
+  tipoDoTermoDeAceite: string
+  sistemaDeOrigem: string
+}

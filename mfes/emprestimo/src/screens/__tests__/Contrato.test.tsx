@@ -10,9 +10,9 @@ afterEach(() => vi.restoreAllMocks())
 describe('Contrato', () => {
   it('carrega o contrato e navega para o extrato', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
-      Contrato: '123456-7', DescricaoDaLinha: 'Crédito Pessoal', CodigoDaLinha: 101,
-      ValorLiberado: 15000, ValorBruto: 16250, SaldoAtual: 9245.5, NumeroDeParcelas: 24,
-      ParcelasRestantes: 14, TaxaDeJuros: 1.89, TaxaDaCETMensal: 2.11, TaxaDaCETAnual: 28.7,
+      numero: '123456-7', linhaDeCredito: 'Crédito Pessoal', valorLiberado: 15000, saldoAtual: 9245.5,
+      parcelas: 24, parcelasRestantes: 14, taxaDeJuros: 1.89, cetMensal: 2.11, cetAnual: 28.7,
+      temAtraso: false, proximaParcela: null,
     }))))
     const ir = vi.fn()
     render(<Contrato api={createApi(ctx)} contrato="123456-7" ir={ir} voltar={() => {}} />)

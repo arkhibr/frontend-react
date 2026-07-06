@@ -1,6 +1,5 @@
 import type { EmprestimoApi } from '../api/endpoints'
 import type { View, Movimento, ParcelaPrevista, ParcelaDetalhe, ParcelaAtraso } from '../domain'
-import { toMovimento, toParcelaPrevista, toParcelaDetalhe, toParcelaAtraso } from '../mappers'
 import { ConsultaTabela, type Coluna } from '../components/ConsultaTabela'
 
 const moeda = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -20,7 +19,7 @@ export function ConsultaScreen(
         { cabecalho: 'Saldo', valor: (m) => moeda(m.saldo) },
       ]
       return <ConsultaTabela titulo="Extrato" colunas={colunas} voltar={voltar}
-        carregar={async () => (await api.obterExtrato(id, '2026-05-30', '2026-06-29')).MovimentoDeEmprestimo?.map(toMovimento) ?? []} />
+        carregar={async () => api.obterExtrato(id, '2026-05-30', '2026-06-29')} />
     }
     case 'emprestimo-previsao': {
       const colunas: Coluna<ParcelaPrevista>[] = [
@@ -30,7 +29,7 @@ export function ConsultaScreen(
         { cabecalho: 'Saldo', valor: (p) => moeda(p.saldoAtual) },
       ]
       return <ConsultaTabela titulo="Previsão de parcelas" colunas={colunas} voltar={voltar}
-        carregar={async () => (await api.obterPrevisao(id)).Parcelas.map(toParcelaPrevista)} />
+        carregar={async () => api.obterPrevisao(id)} />
     }
     case 'emprestimo-detalhamento': {
       const colunas: Coluna<ParcelaDetalhe>[] = [
@@ -40,7 +39,7 @@ export function ConsultaScreen(
         { cabecalho: 'Status', valor: (p) => p.status },
       ]
       return <ConsultaTabela titulo="Detalhamento" colunas={colunas} voltar={voltar}
-        carregar={async () => (await api.obterDetalhamento(id)).map(toParcelaDetalhe)} />
+        carregar={async () => api.obterDetalhamento(id)} />
     }
     case 'emprestimo-atraso': {
       const colunas: Coluna<ParcelaAtraso>[] = [
@@ -50,7 +49,7 @@ export function ConsultaScreen(
         { cabecalho: 'Próx. vencimento', valor: (p) => p.proximoVencimento },
       ]
       return <ConsultaTabela titulo="Parcelas em atraso" colunas={colunas} voltar={voltar}
-        carregar={async () => (await api.obterAtraso(id)).ParcelasEmAtraso.map(toParcelaAtraso)} />
+        carregar={async () => api.obterAtraso(id)} />
     }
     default: {
       const _exhaustive: never = view
