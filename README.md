@@ -241,6 +241,7 @@ Em dev, `apiUrl` vazio direciona as chamadas ao MSW. Em produção, gere/monte o
 5. Copiar/montar `dist/` no host (wwwroot, container ou CDN — Content Delivery Network)
 6. Configurar `dist/config.json` (`apiUrl`, cores)
 6.1. Se usando Gateway+BFFs (ADR-015): publicar as três imagens (`gateway/Dockerfile`, `bffs/emprestimo/Dockerfile`, `bffs/endereco/Dockerfile`) e apontar `apiUrl` do `config.json` para a URL pública do Gateway
+6.2. Configurar `CORS_ORIGIN` do Gateway (ver [`gateway/README.md`](gateway/README.md); padrão `http://localhost:5173`) para a origem real de produção do shell — sem isso o navegador bloqueia por CORS toda requisição do shell implantado ao Gateway
 7. Publicar `dist/mfe-manifest.json` com as entradas dos MFEs de produção
 8. Validar CSP (Content Security Policy) e **CORS** dos buckets de MFE (o `import()` é cross-origin) — seguir o **playbook de rollout** em [`SECURITY.md`](SECURITY.md) (Report-Only → analisar → enforce); conferir `CSP_CONNECT_SRC`/`CSP_REPORT_URI` do ambiente
 9. Smoke test funcional (login → dashboard → MFE)

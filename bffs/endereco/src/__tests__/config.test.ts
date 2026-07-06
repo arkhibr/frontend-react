@@ -9,4 +9,8 @@ describe('loadConfig', () => {
   it('usa PORT quando definida', () => {
     expect(loadConfig({ PORT: '9000' }).port).toBe(9000)
   })
+
+  it('cai no padrão quando PORT é malformada', () => {
+    expect(loadConfig({ PORT: 'abc' }).port).toBe(4002)
+  })
 })

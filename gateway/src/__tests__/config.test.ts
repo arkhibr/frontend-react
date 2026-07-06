@@ -34,4 +34,15 @@ describe('loadConfig', () => {
     expect(config.rateLimit.mutatingMax).toBe(5)
     expect(config.auditLogPath).toBe('/var/log/gateway/audit.log')
   })
+
+  it('cai no padrão quando uma env var numérica é malformada', () => {
+    const config = loadConfig({
+      PORT: 'abc',
+      RATE_LIMIT_GLOBAL_MAX: 'abc',
+    })
+
+    expect(config.port).toBe(4000)
+    expect(config.rateLimit.globalMax).toBe(100)
+    expect(Number.isNaN(config.rateLimit.globalMax)).toBe(false)
+  })
 })
