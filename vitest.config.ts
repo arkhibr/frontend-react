@@ -9,8 +9,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
-    // mfes/** tem seu próprio runner de teste (vitest por MFE); não rodar aqui.
-    exclude: ['**/node_modules/**', 'tests/e2e/**', 'mfes/**'],
+    // mfes/**, gateway/** e bffs/** têm seu próprio runner de teste (vitest por pacote); não rodar aqui.
+    exclude: ['**/node_modules/**', 'tests/e2e/**', 'mfes/**', 'gateway/**', 'bffs/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
