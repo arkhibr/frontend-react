@@ -1,0 +1,12 @@
+import { describe, it, expect } from 'vitest'
+import { loadConfig } from '../config.ts'
+
+describe('loadConfig', () => {
+  it('usa a porta padrão quando PORT não é definida', () => {
+    expect(loadConfig({}).port).toBe(4002)
+  })
+
+  it('usa PORT quando definida', () => {
+    expect(loadConfig({ PORT: '9000' }).port).toBe(9000)
+  })
+})
