@@ -9,40 +9,40 @@ function jsonFetch(data: unknown) {
 }
 
 describe('endpoints', () => {
-  it('listarContratos faz GET em /emprestimo.svc/contratos', async () => {
-    const fetchMock = jsonFetch([{ Contrato: '1' }])
+  it('listarContratos faz GET em /contratos', async () => {
+    const fetchMock = jsonFetch([{ numero: '1' }])
     vi.stubGlobal('fetch', fetchMock)
     const api = createApi(ctx)
     const res = await api.listarContratos()
-    expect(fetchMock).toHaveBeenCalledWith('http://api/emprestimo.svc/contratos', expect.any(Object))
-    expect(res[0].Contrato).toBe('1')
+    expect(fetchMock).toHaveBeenCalledWith('http://api/contratos', expect.any(Object))
+    expect(res[0].numero).toBe('1')
   })
 
-  it('simularMultiplas faz POST com body em /emprestimo.svc/MultiplasSimulacoes', async () => {
-    vi.stubGlobal('fetch', jsonFetch({ PrevisoesDeParcelas: [] }))
+  it('simularMultiplas faz POST com body em /simulacao/multiplas', async () => {
+    vi.stubGlobal('fetch', jsonFetch([]))
     const api = createApi(ctx)
-    await api.simularMultiplas({ LinhaDeCredito: 205 } as never)
+    await api.simularMultiplas({ linhaDeCredito: 205, valorLiquido: 10000, numeroDeParcelas: [24] })
     expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-      'http://api/emprestimo.svc/MultiplasSimulacoes',
+      'http://api/simulacao/multiplas',
       expect.objectContaining({ method: 'POST' }),
     )
   })
 
-  it('obterContrato faz GET em /emprestimo.svc/contratos/:id', async () => {
-    vi.stubGlobal('fetch', jsonFetch({ Contrato: '001-A' }))
+  it('obterContrato faz GET em /contratos/:id', async () => {
+    vi.stubGlobal('fetch', jsonFetch({ numero: '001-A' }))
     const api = createApi(ctx)
     await api.obterContrato('001-A')
     expect(vi.mocked(fetch)).toHaveBeenCalledWith(expect.stringContaining('/contratos/001-A'), expect.any(Object))
   })
 
-  it('listarPropostas faz GET em /emprestimo.svc/propostas', async () => {
+  it('listarPropostas faz GET em /propostas', async () => {
     vi.stubGlobal('fetch', jsonFetch([]))
     const api = createApi(ctx)
     await api.listarPropostas()
     expect(vi.mocked(fetch)).toHaveBeenCalledWith(expect.stringContaining('/propostas'), expect.any(Object))
   })
 
-  it('excluirProposta faz DELETE em /emprestimo.svc/propostas/:id', async () => {
+  it('excluirProposta faz DELETE em /propostas/:id', async () => {
     vi.stubGlobal('fetch', jsonFetch(true))
     const api = createApi(ctx)
     await api.excluirProposta('PRP-99')
@@ -52,32 +52,35 @@ describe('endpoints', () => {
     )
   })
 
-  it('obterExtrato faz GET com datas', async () => {
-    vi.stubGlobal('fetch', jsonFetch({ MovimentoDeEmprestimo: [] }))
+  it('obterExtrato faz GET com datas na querystring', async () => {
+    vi.stubGlobal('fetch', jsonFetch([]))
     const api = createApi(ctx)
     await api.obterExtrato('001-A', '2026-05-01', '2026-06-01')
-    expect(vi.mocked(fetch)).toHaveBeenCalledWith(expect.stringContaining('001-A'), expect.any(Object))
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+      expect.stringContaining('/contratos/001-A/extrato?inicio=2026-05-01&fim=2026-06-01'),
+      expect.any(Object),
+    )
   })
 
-  it('obterParametrosSimulacao faz GET em /emprestimo.svc/simulacao', async () => {
-    vi.stubGlobal('fetch', jsonFetch({ LinhasDeEmprestimo: [] }))
+  it('obterParametrosSimulacao faz GET em /simulacao/parametros', async () => {
+    vi.stubGlobal('fetch', jsonFetch([]))
     const api = createApi(ctx)
     await api.obterParametrosSimulacao()
-    expect(vi.mocked(fetch)).toHaveBeenCalledWith(expect.stringContaining('/simulacao'), expect.any(Object))
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith(expect.stringContaining('/simulacao/parametros'), expect.any(Object))
   })
 
-  it('enviarProposta faz POST em /emprestimo.svc/propostas/object', async () => {
+  it('enviarProposta faz POST em /propostas', async () => {
     vi.stubGlobal('fetch', jsonFetch({ numeroDoContrato: 'CTR-100' }))
     const api = createApi(ctx)
-    const result = await api.enviarProposta({ ValorLiquido: 10000, NumeroParcelas: 24, LinhaCredito: 205 } as never)
+    const result = await api.enviarProposta({ valorLiquido: 10000, numeroParcelas: 24, linhaCredito: 205 })
     expect(result.numeroDoContrato).toBe('CTR-100')
-    expect(vi.mocked(fetch)).toHaveBeenCalledWith(expect.stringContaining('propostas/object'), expect.objectContaining({ method: 'POST' }))
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith('http://api/propostas', expect.objectContaining({ method: 'POST' }))
   })
 
-  it('assinarTermo faz POST em /TermoDeAceite.svc/AssinarTermoDeAceite', async () => {
+  it('assinarTermo faz POST em /termos/assinar', async () => {
     vi.stubGlobal('fetch', jsonFetch(true))
     const api = createApi(ctx)
-    await api.assinarTermo({ TipoDoTermoDeAceite: 'PROPOSTA_WEB', SistemaDeOrigem: 'WEB' })
-    expect(vi.mocked(fetch)).toHaveBeenCalledWith(expect.stringContaining('AssinarTermoDeAceite'), expect.objectContaining({ method: 'POST' }))
+    await api.assinarTermo({ tipoDoTermoDeAceite: 'PROPOSTA_WEB', sistemaDeOrigem: 'WEB' })
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith(expect.stringContaining('/termos/assinar'), expect.objectContaining({ method: 'POST' }))
   })
 })
