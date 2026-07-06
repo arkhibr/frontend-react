@@ -2,7 +2,7 @@
 
 **Shell nuclear de uma plataforma de microfrontends dinâmicos.** Uma SPA (Single-Page Application) em React 19 + TypeScript que, além de hospedar suas próprias telas (login, dashboard), carrega **microfrontends (MFEs) autônomos em tempo de execução** a partir de buckets S3 (Amazon Simple Storage Service), sob um contrato `mount`/`unmount`. A estrutura interna segue **Feature-Sliced Design (FSD)**, com fronteiras de camada verificadas automaticamente pelo ESLint.
 
-> 📐 **Documentação arquitetural completa:** [`docs/architecture/README.md`](docs/architecture/README.md) — diagramas C4 (modelo de arquitetura em quatro níveis: Context, Container, Component, Code), mapa de módulos e as 13 ADRs (Architecture Decision Record — registro de decisão de arquitetura).
+> 📐 **Documentação arquitetural completa:** [`docs/architecture/README.md`](docs/architecture/README.md) — diagramas C4 (modelo de arquitetura em quatro níveis: Context, Container, Component, Code), mapa de módulos e as 15 ADRs (Architecture Decision Record — registro de decisão de arquitetura).
 
 ---
 
@@ -15,6 +15,7 @@
 - [Decisões arquiteturais (ADRs)](#decisões-arquiteturais-adrs)
 - [Desenvolvimento local](#desenvolvimento-local)
 - [Rodando a plataforma completa (shell + MFE + S3)](#rodando-a-plataforma-completa-shell--mfe--s3)
+- [Rodando Gateway + BFFs (ADR-015)](#rodando-gateway--bffs-adr-015)
 - [Comandos](#comandos)
 - [Estratégia de testes](#estratégia-de-testes)
 - [Configuração externa e variáveis de ambiente](#configuração-externa-e-variáveis-de-ambiente)
@@ -106,7 +107,7 @@ Além disso, o padrão de organização de pastas chamado FSD (Feature Sliced De
 
 ## Decisões arquiteturais (ADRs)
 
-Em [`docs/architecture/adrs/`](docs/architecture/adrs/). As ADRs 008–014 cobrem a plataforma de microfrontends, sua segurança e seu contrato visual:
+Em [`docs/architecture/adrs/`](docs/architecture/adrs/). As ADRs 008–015 cobrem a plataforma de microfrontends, sua segurança, seu contrato visual e o Gateway de API:
 
 | ADR | Decisão |
 |-----|---------|
