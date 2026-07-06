@@ -139,8 +139,6 @@ graph LR
 
 ## Links
 
-- Spec: [`docs/superpowers/specs/2026-07-05-gateway-bff-design.md`](../../superpowers/specs/2026-07-05-gateway-bff-design.md)
-- Planos: [`2026-07-05-gateway-core.md`](../../superpowers/plans/2026-07-05-gateway-core.md), [`2026-07-05-bff-endereco.md`](../../superpowers/plans/2026-07-05-bff-endereco.md), [`2026-07-05-bff-emprestimo.md`](../../superpowers/plans/2026-07-05-bff-emprestimo.md)
 - Código: [`gateway/`](../../../gateway/README.md), [`bffs/emprestimo/`](../../../bffs/emprestimo/README.md), [`bffs/endereco/`](../../../bffs/endereco/README.md)
 - ADRs relacionadas: ADR-004 (autenticação — token Bearer atravessa o novo hop sem alteração), ADR-008 (microfrontends dinâmicos — revisita "MFE fala só com o back-end")
 
