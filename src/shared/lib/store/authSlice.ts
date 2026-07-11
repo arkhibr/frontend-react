@@ -30,9 +30,11 @@ export const authSlice = createSlice({
   reducers: {
     login(state, action: PayloadAction<{ token: string }>) {
       const { token } = action.payload
+      if (isTokenExpired(token)) throw new Error('Token JWT inválido ou expirado')
+      const user = parseToken(token)
       tokenStorage.set(token)
       state.token = token
-      state.user = parseToken(token)
+      state.user = user
       state.isAuthenticated = true
     },
     logout(state) {

@@ -5,6 +5,7 @@ import { createConsultasRouter } from '../consultas.ts'
 
 function buildApp() {
   const app = express()
+  app.use((_req, res, next) => { res.locals.auth = { sub: 'user1', roles: [] }; next() })
   app.use(createConsultasRouter())
   return app
 }

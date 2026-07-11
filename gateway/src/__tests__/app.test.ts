@@ -6,6 +6,7 @@ import type { AddressInfo } from 'node:net'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { SignJWT } from 'jose'
 import { createApp } from '../app.ts'
 import type { GatewayConfig } from '../config.ts'
 
@@ -23,7 +24,13 @@ function startFakeBff(): Promise<string> {
   return new Promise((resolve) => {
     fakeBff = createServer((req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ path: req.url, method: req.method }))
+      res.end(JSON.stringify({
+        path: req.url,
+        method: req.method,
+        subject: req.headers['x-authenticated-subject'],
+        internalKey: req.headers['x-internal-gateway-key'],
+        authorization: req.headers.authorization,
+      }))
     })
     fakeBff.listen(0, () => {
       const { port } = fakeBff!.address() as AddressInfo
@@ -38,9 +45,23 @@ function buildConfig(bffs: Record<string, string>): GatewayConfig {
     port: 0,
     corsOrigin: 'http://localhost:5173',
     bffs,
+    auth: { issuer: 'portal-test', audience: 'portal-api', sharedSecret: 'test-shared-secret' },
+    internalGatewayKey: 'test-gateway-key',
+    trustProxy: false,
     rateLimit: { windowMs: 60_000, globalMax: 100, mutatingMax: 20 },
     auditLogPath: join(tempDir, 'audit.log'),
   }
+}
+
+async function token(sub = 'user1'): Promise<string> {
+  return new SignJWT({ roles: ['cliente'] })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setSubject(sub)
+    .setIssuer('portal-test')
+    .setAudience('portal-api')
+    .setIssuedAt()
+    .setExpirationTime('5m')
+    .sign(new TextEncoder().encode('test-shared-secret'))
 }
 
 describe('createApp', () => {
@@ -48,16 +69,17 @@ describe('createApp', () => {
     const bffUrl = await startFakeBff()
     const config = buildConfig({ emprestimo: bffUrl })
 
-    const res = await request(createApp(config)).get('/bff/emprestimo/contratos')
+    const res = await request(createApp(config)).get('/bff/emprestimo/contratos').set('Authorization', `Bearer ${await token()}`)
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ path: '/contratos', method: 'GET' })
+    expect(res.body).toEqual({ path: '/contratos', method: 'GET', subject: 'user1', internalKey: 'test-gateway-key' })
+    expect(res.body).not.toHaveProperty('authorization')
   })
 
   it('responde 404 para um BFF desconhecido', async () => {
     const config = buildConfig({})
 
-    const res = await request(createApp(config)).get('/bff/inexistente/foo')
+    const res = await request(createApp(config)).get('/bff/inexistente/foo').set('Authorization', `Bearer ${await token()}`)
 
     expect(res.status).toBe(404)
     expect(res.body.error).toBe('not_found')
@@ -69,7 +91,14 @@ describe('createApp', () => {
     const res = await request(createApp(config))
       .get('/bff/inexistente/foo')
       .set('Origin', 'http://localhost:5173')
+      .set('Authorization', `Bearer ${await token()}`)
 
     expect(res.headers['access-control-allow-origin']).toBe('http://localhost:5173')
+  })
+
+  it('rejeita token ausente ou inválido antes de chamar o BFF', async () => {
+    const config = buildConfig({})
+    await request(createApp(config)).get('/bff/emprestimo/contratos').expect(401)
+    await request(createApp(config)).get('/bff/emprestimo/contratos').set('Authorization', 'Bearer x.e30.x').expect(401)
   })
 })

@@ -17,7 +17,7 @@ server {
     location ~* \.(js|css|png|svg|woff2|ico)$ {
         expires 1y;
         add_header Cache-Control "public, immutable" always;
-        add_header Content-Security-Policy "default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' https: 'unsafe-inline'; style-src 'self' 'nonce-$csp_nonce'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests; report-to csp-endpoint" always;
+        add_header Content-Security-Policy "default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' blob: https: 'unsafe-inline'; style-src 'self' 'nonce-$csp_nonce'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests; report-to csp-endpoint" always;
         add_header Content-Security-Policy-Report-Only "require-trusted-types-for 'script'; trusted-types default; report-to csp-endpoint" always;
         add_header Reporting-Endpoints "csp-endpoint=\"${CSP_REPORT_URI}\"" always;
         add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
@@ -29,7 +29,7 @@ server {
 
     location = /index.html {
         add_header Cache-Control "no-cache, no-store, must-revalidate" always;
-        add_header Content-Security-Policy "default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' https: 'unsafe-inline'; style-src 'self' 'nonce-$csp_nonce'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests; report-to csp-endpoint" always;
+        add_header Content-Security-Policy "default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' blob: https: 'unsafe-inline'; style-src 'self' 'nonce-$csp_nonce'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests; report-to csp-endpoint" always;
         add_header Content-Security-Policy-Report-Only "require-trusted-types-for 'script'; trusted-types default; report-to csp-endpoint" always;
         add_header Reporting-Endpoints "csp-endpoint=\"${CSP_REPORT_URI}\"" always;
         add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
@@ -43,7 +43,7 @@ server {
 
     location / {
         try_files $uri $uri/ /index.html;
-        add_header Content-Security-Policy "default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' https: 'unsafe-inline'; style-src 'self' 'nonce-$csp_nonce'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests; report-to csp-endpoint" always;
+        add_header Content-Security-Policy "default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' blob: https: 'unsafe-inline'; style-src 'self' 'nonce-$csp_nonce'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests; report-to csp-endpoint" always;
         add_header Content-Security-Policy-Report-Only "require-trusted-types-for 'script'; trusted-types default; report-to csp-endpoint" always;
         add_header Reporting-Endpoints "csp-endpoint=\"${CSP_REPORT_URI}\"" always;
         add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;

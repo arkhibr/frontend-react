@@ -6,6 +6,7 @@ import { createSimulacaoRouter } from '../simulacao.ts'
 function buildApp() {
   const app = express()
   app.use(express.json())
+  app.use((_req, res, next) => { res.locals.auth = { sub: 'user1', roles: [] }; next() })
   app.use(createSimulacaoRouter())
   return app
 }
@@ -19,6 +20,13 @@ describe('rotas de simulação', () => {
       id: 205, descricao: 'Refinanciamento Consignado', numeroMinimoDeParcelas: 12, numeroMaximoDeParcelas: 48,
       valorMinimo: 3000, valorMaximo: 50000, percentualTaxaJuros: 1.39, creditoTrabalhador: true,
     }])
+  })
+
+  it('rejeita simulação fora das condições de crédito', async () => {
+    const res = await request(buildApp()).post('/simulacao/multiplas').send({
+      linhaDeCredito: 205, valorLiquido: 1, numeroDeParcelas: [24],
+    })
+    expect(res.status).toBe(400)
   })
 
   it('GET /simulacao/primeiro-vencimento retorna o resultado em camelCase', async () => {

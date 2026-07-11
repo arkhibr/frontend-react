@@ -2,7 +2,7 @@ import { Router } from 'express'
 import type { Response } from 'express'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 
-export function createProxyRouter(bffs: Record<string, string>): Router {
+export function createProxyRouter(bffs: Record<string, string>, internalGatewayKey: string): Router {
   const router = Router()
 
   for (const [name, target] of Object.entries(bffs)) {
@@ -14,7 +14,12 @@ export function createProxyRouter(bffs: Record<string, string>): Router {
         on: {
           proxyReq: (proxyReq, _req, res) => {
             const correlationId = (res as unknown as Response).locals.correlationId as string
+            const auth = (res as unknown as Response).locals.auth as { sub: string; roles: string[] }
+            proxyReq.removeHeader('authorization')
             proxyReq.setHeader('X-Correlation-Id', correlationId)
+            proxyReq.setHeader('X-Internal-Gateway-Key', internalGatewayKey)
+            proxyReq.setHeader('X-Authenticated-Subject', auth.sub)
+            proxyReq.setHeader('X-Authenticated-Roles', auth.roles.join(','))
           },
         },
       }),

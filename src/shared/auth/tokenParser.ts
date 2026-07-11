@@ -17,7 +17,8 @@ export function parseToken(token: string): JwtPayload {
 
 export function isTokenExpired(token: string): boolean {
   try {
-    const { exp } = parseToken(token)
+    const { exp, iat, sub } = parseToken(token)
+    if (!Number.isFinite(exp) || !Number.isFinite(iat) || typeof sub !== 'string' || sub.length === 0) return true
     return Date.now() >= exp * 1000
   } catch {
     return true

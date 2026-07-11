@@ -154,9 +154,12 @@ npm run deploy       # sobe o LocalStack se preciso, instala deps,
 npm run dev          # http://localhost:5173
 ```
 
-O `npm run deploy` da raiz é self-contained e pensado para um ambiente limpo: se o LocalStack (`:4566`) não estiver no ar ele o sobe via `docker compose`; para cada MFE, roda `npm ci` quando faltam dependências, builda e delega o upload ao `deploy` do próprio MFE, confirmando ao final que cada bundle responde `200`. Para publicar um MFE isolado, `cd mfes/<id> && npm run deploy` continua funcionando (exige o LocalStack já no ar).
+O `npm run deploy` da raiz é self-contained e pensado para um ambiente limpo: se o LocalStack (`:4566`) não estiver no ar ele o sobe via `docker compose`; para cada MFE, roda `npm ci` quando faltam dependências, builda, delega o upload e confirma HTTP `200`. Depois de validar o bundle, recalcula o SHA-256 e atualiza `integrity` no manifesto. Para publicar um MFE isolado, `cd mfes/<id> && npm run deploy` continua funcionando, mas a publicação do manifesto com o hash correspondente continua sendo obrigatória.
 
-O shell lê [`public/mfe-manifest.json`](public/mfe-manifest.json), encontra as entradas dos MFEs e os monta dinamicamente ao acessar suas rotas. O fluxo ponta a ponta (carga dinâmica + isolamento de falha) é coberto por [`tests/e2e/mfe-endereco.spec.ts`](tests/e2e/mfe-endereco.spec.ts).
+O shell lê [`public/mfe-manifest.json`](public/mfe-manifest.json), valida origem,
+rota e hash SHA-256 de cada bundle e só então monta o MFE ao acessar sua rota. O
+deploy orquestrado (`npm run deploy`) recalcula automaticamente o campo
+`integrity` do manifesto após validar o artefato publicado.
 
 ## Rodando Gateway + BFFs (ADR-015)
 
@@ -174,7 +177,7 @@ Ou via Docker Compose, subindo os três de uma vez:
 docker compose -f infra/docker-compose.yml up -d --build gateway bff-emprestimo bff-endereco
 ```
 
-Com o Gateway no ar, configure `dist/config.json` (ou `public/config.json` em dev) com `"apiUrl": "http://localhost:4000"` e suba o shell normalmente (`npm run dev`).
+Com o Gateway no ar, configure `dist/config.json` (ou `public/config.json` em dev) com `"apiUrl": "http://localhost:4000"` e suba o shell normalmente (`npm run dev`). O gateway exige um JWT válido emitido pelo provedor configurado; o MSW continua sendo a alternativa para desenvolvimento isolado sem gateway.
 
 ## Comandos
 
@@ -220,6 +223,7 @@ Detalhada em [ADR-005](docs/architecture/adrs/ADR-005-testes.md).
 | `apiUrl` | URL base da API de Clientes | `""` (usa `VITE_API_BASE_URL` como fallback) |
 | `primaryColor` | Cor primária (CSS var `--color-primary`) | `#1A56DB` |
 | `secondaryColor` | Cor secundária (CSS var `--color-secondary`) | `#6B7280` |
+| `mfeAllowedOrigins` | Origens autorizadas a fornecer bundles de MFE; HTTPS em produção | `[]` |
 
 Para rodar a plataforma completa com Gateway e BFFs (ver ADR-015), aponte `apiUrl` para o Gateway: `"apiUrl": "http://localhost:4000"`. Sem Gateway/BFFs no ar, mantenha `apiUrl` vazio para usar o MSW.
 
@@ -239,16 +243,16 @@ Em dev, `apiUrl` vazio direciona as chamadas ao MSW. Em produção, gere/monte o
 3. `npm run type-check && npm run test` — tudo verde
 4. `npm run build` — gera `dist/`
 5. Copiar/montar `dist/` no host (wwwroot, container ou CDN — Content Delivery Network)
-6. Configurar `dist/config.json` (`apiUrl`, cores)
+6. Configurar `dist/config.json` (`apiUrl`, cores, `mfeAllowedOrigins`)
 6.1. Se usando Gateway+BFFs (ADR-015): publicar as três imagens (`gateway/Dockerfile`, `bffs/emprestimo/Dockerfile`, `bffs/endereco/Dockerfile`) e apontar `apiUrl` do `config.json` para a URL pública do Gateway
-6.2. Configurar `CORS_ORIGIN` do Gateway (ver [`gateway/README.md`](gateway/README.md); padrão `http://localhost:5173`) para a origem real de produção do shell — sem isso o navegador bloqueia por CORS toda requisição do shell implantado ao Gateway
-7. Publicar `dist/mfe-manifest.json` com as entradas dos MFEs de produção
-8. Validar CSP (Content Security Policy) e **CORS** dos buckets de MFE (o `import()` é cross-origin) — seguir o **playbook de rollout** em [`SECURITY.md`](SECURITY.md) (Report-Only → analisar → enforce); conferir `CSP_CONNECT_SRC`/`CSP_REPORT_URI` do ambiente
+6.2. Configurar `CORS_ORIGIN`, `JWT_JWKS_URL`, `JWT_ISSUER`, `JWT_AUDIENCE` e `INTERNAL_GATEWAY_KEY` do Gateway via secret manager (ver [`gateway/README.md`](gateway/README.md))
+7. Publicar o manifesto de produção com `url` HTTPS permitida e `integrity` correspondente ao bundle; bundle e manifesto devem ser promovidos juntos
+8. Validar CSP (Content Security Policy) e CORS dos buckets de MFE — seguir o **playbook de rollout** em [`SECURITY.md`](SECURITY.md); conferir `CSP_CONNECT_SRC`, `CSP_REPORT_URI` e `mfeAllowedOrigins`
 9. Smoke test funcional (login → dashboard → MFE)
 
 ### Cada MFE
 
 1. `npm ci && npm run test:coverage` — cobertura ≥ 80%
 2. `npm run build` — gera o bundle ESM
-3. `npm run deploy` — publica no bucket (com policy de leitura pública e CORS)
-4. Atualizar a entrada correspondente no `mfe-manifest.json`
+3. `npm run deploy` na raiz — publica no bucket, valida o artefato e atualiza `integrity` no manifesto
+4. Revisar e publicar o manifesto atualizado junto com o bundle

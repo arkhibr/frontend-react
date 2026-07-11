@@ -11,10 +11,12 @@ O **Portal Web** é uma aplicação de página única (SPA) construída com Reac
 graph LR
     user(["👤 Usuário\ncliente ou operador"])
     portal["Portal Web\nSPA React 19 + TypeScript"]
-    api["API de Clientes\nback-end Python"]
+    gateway["Gateway de API\nJWT · rate limit · auditoria"]
+    bff["BFFs internos\ncontrato + autorização"]
 
     user -->|"HTTPS"| portal
-    portal -->|"HTTPS + Bearer JWT"| api
+    portal -->|"HTTPS + Bearer JWT"| gateway
+    gateway -->|"identidade interna"| bff
 ```
 
 ## Diagrama de Containers
@@ -35,18 +37,20 @@ graph LR
         bundle["bundles dos MFEs\n(um bucket por MFE)"]
     end
 
-    api["API de Clientes\nPython"]
+    gateway["Gateway\nJWT · auditoria · rate limit"]
+    bff["BFFs internos\ncontrato + autorização"]
 
     user -->|"HTTPS"| nginx
     nginx -->|"HTML + JS + CSS"| shell
     shell -->|"fetch manifesto"| manifest
-    shell -->|"import() em runtime"| bundle
+    shell -->|"fetch + SHA-256 + import Blob"| bundle
     bundle -->|"monta na rota"| mfe
-    shell -->|"HTTPS + Bearer JWT"| api
-    mfe -->|"HTTPS + Bearer JWT"| api
+    shell -->|"HTTPS + Bearer JWT"| gateway
+    mfe -->|"HTTPS + Bearer JWT"| gateway
+    gateway -->|"identidade interna"| bff
 ```
 
-Os microfrontends são carregados **dinamicamente em runtime** a partir de buckets S3 (Amazon Simple Storage Service), sob o contrato `mount`/`unmount` (ver ADR-008..014 e [`src/app/mfe/`](../../src/app/mfe/README.md)). As ADRs 008–014 cobrem a plataforma de microfrontends, sua segurança e seu contrato visual.
+Os microfrontends são carregados **dinamicamente em runtime** a partir de buckets S3 (Amazon Simple Storage Service), sob o contrato `mount`/`unmount`. A origem e o SHA-256 do bundle são validados antes da execução (ver ADR-008..015 e [`src/app/mfe/`](../../src/app/mfe/README.md)).
 
 O custo de carga dinâmica desse mecanismo é medido e documentado em [`docs/performance/`](../performance/README.md) — relatórios informativos por MFE, decompostos por fase e por perfil de rede.
 
@@ -81,3 +85,4 @@ O custo de carga dinâmica desse mecanismo é medido e documentado em [`docs/per
 | [ADR-012](adrs/ADR-012-content-security-policy.md) | **Content Security Policy estrito e baseline de segurança** | Proposed |
 | [ADR-013](adrs/ADR-013-trusted-types-e-reporting.md) | **Trusted Types e Reporting API** | Proposed |
 | [ADR-014](adrs/ADR-014-css-e-contrato-visual-em-microfrontends.md) | **CSS e contrato visual em microfrontends dinâmicos** | Proposed |
+| [ADR-015](adrs/ADR-015-gateway-api-e-bff.md) | **Gateway de API com BFFs** | Proposed |

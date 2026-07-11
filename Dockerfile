@@ -3,7 +3,7 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --prefer-offline
+RUN npm ci --prefer-offline
 
 COPY . .
 ARG VITE_ENV=production

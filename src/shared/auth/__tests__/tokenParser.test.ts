@@ -38,4 +38,9 @@ describe('isTokenExpired', () => {
   it('retorna true para token mal-formado', () => {
     expect(isTokenExpired('invalido')).toBe(true)
   })
+
+  it('trata token sem claims obrigatórios como expirado', () => {
+    const tokenSemExp = ['header', btoa(JSON.stringify({ sub: 'user1', iat: 1 })), 'signature'].join('.')
+    expect(isTokenExpired(tokenSemExp)).toBe(true)
+  })
 })

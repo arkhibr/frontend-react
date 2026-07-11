@@ -26,6 +26,7 @@ export function createRateLimiters(
     standardHeaders: true,
     legacyHeaders: false,
     handler: tooManyRequests,
+    keyGenerator: (req, res) => (res.locals.auth?.sub as string | undefined) ?? req.ip ?? 'unknown',
   })
 
   const mutating = rateLimit({
@@ -34,6 +35,7 @@ export function createRateLimiters(
     standardHeaders: true,
     legacyHeaders: false,
     handler: tooManyRequests,
+    keyGenerator: (req, res) => (res.locals.auth?.sub as string | undefined) ?? req.ip ?? 'unknown',
     skip: (req) => !MUTATING_METHODS.has(req.method),
   })
 

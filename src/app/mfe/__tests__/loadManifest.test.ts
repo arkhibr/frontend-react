@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
+vi.mock('@/shared/config', () => ({ getMfeAllowedOrigins: () => ['https://x'] }))
 import { loadManifest } from '../loadManifest'
 
 const ok = {
   schemaVersion: 1,
-  mfes: [{ id: 'a', name: 'A', state: 'active', url: 'http://x/a.js', route: '/a', dependsOn: [] }],
+  mfes: [{ id: 'a', name: 'A', state: 'active', url: 'https://x/a.js', integrity: 'sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', route: '/a', dependsOn: [] }],
 }
 
 afterEach(() => vi.restoreAllMocks())

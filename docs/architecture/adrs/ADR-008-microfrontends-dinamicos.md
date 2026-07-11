@@ -35,7 +35,7 @@ A pergunta não é "como dividir o código em pastas" (isso é FSD (Feature-Slic
 
 ### Opção 1: Shell nuclear + MFEs autônomos carregados em runtime de S3 (Amazon Simple Storage Service) (escolhida)
 
-O shell carrega um `mfe-manifest.json`, valida-o, resolve a ordem de dependências e renderiza rotas dinâmicas. Cada rota monta um MFE via `import()` ESM (ECMAScript Modules — módulos nativos do JavaScript) de um bundle hospedado em bucket S3, sob o contrato `mount`/`unmount` (ADR-009). Cada MFE empacota o próprio React e fala apenas com o back-end.
+O shell carrega um `mfe-manifest.json`, valida-o, resolve a ordem de dependências e renderiza rotas dinâmicas. Cada rota baixa o bundle do bucket S3, confere sua origem e hash SHA-256 e só então o importa como módulo ESM via Blob, sob o contrato `mount`/`unmount` (ADR-009). Cada MFE empacota o próprio React e fala apenas com o back-end.
 
 - ✅ **Prós**: deploy/versão independentes; isolamento de falha; carga sob demanda; shell estável
 - ❌ **Contras**: cada MFE empacota seu React (bundles maiores); contrato precisa ser versionado e respeitado
@@ -92,7 +92,7 @@ graph LR
 
     user -->|"HTTPS"| shell
     shell -->|"fetch manifesto"| manifest
-    shell -->|"import() em runtime"| bundle
+    shell -->|"fetch + SHA-256 + import Blob"| bundle
     bundle -->|"monta na rota"| mfe
     mfe -->|"HTTPS + Bearer JWT"| api
 ```
@@ -122,12 +122,14 @@ graph LR
 | MFE quebra o shell | M | H | Error boundary por MFE (`MfeErrorBoundary`) | Plataforma |
 | Drift de contrato entre shell e MFE | M | M | Contrato versionado + validação no carregador (ADR-009) | Arquiteto |
 | Bundle indisponível no storage | M | M | Estado de falha isolado + estados no manifesto (`maintenance`/`disabled`) | Plataforma |
+| Bundle adulterado no storage | M | H | Allowlist de origem e `integrity` SHA-256 antes da execução | Plataforma |
 
 ## Validação
 
 - [ ] Adicionar um MFE não altera o código do shell nem de outros MFEs
 - [ ] E2E (end-to-end) comprova que o portal sobrevive a um MFE que falha ao carregar
 - [ ] Bundle de MFE é carregado apenas ao acessar sua rota
+- [ ] Bundle com hash divergente não é executado
 
 ## Links
 
@@ -144,3 +146,4 @@ graph LR
 | Versão | Data | Autor | Mudanças |
 |--------|------|-------|----------|
 | 1.0 | 2026-06-04 | Marco Mendes | Versão inicial |
+| 1.1 | 2026-07-11 | Codex | Verificação de origem e integridade antes do import |

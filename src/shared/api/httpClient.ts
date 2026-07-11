@@ -29,5 +29,6 @@ export async function httpClient<T>(
     throw new ApiError(response.status, body)
   }
 
+  if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
 }

@@ -11,33 +11,34 @@ beforeEach(() => resetPropostasEmMemoria())
 
 describe('legacyBackend — contratos', () => {
   it('listarContratos retorna os dois contratos do fixture', () => {
-    const contratos = listarContratos()
+    const contratos = listarContratos('user1')
     expect(contratos).toHaveLength(2)
     expect(contratos[0]).toMatchObject({ Contrato: '123456-7', DescricaoDaLinha: 'Crédito Pessoal' })
     expect(contratos[1]).toMatchObject({ Contrato: '654321-0', TemParcelasEmAtraso: true })
   })
 
-  it('obterContrato retorna o detalhe fixo independente do id', () => {
-    expect(obterContrato('qualquer-id').Contrato).toBe('123456-7')
-    expect(obterContrato('outro-id').Contrato).toBe('123456-7')
+  it('obterContrato retorna apenas contrato pertencente ao usuário', () => {
+    expect(obterContrato('user1', '123456-7')?.Contrato).toBe('123456-7')
+    expect(obterContrato('user1', 'outro-id')).toBeUndefined()
+    expect(obterContrato('outro-usuario', '123456-7')).toBeUndefined()
   })
 })
 
 describe('legacyBackend — propostas', () => {
   it('listarPropostas retorna a proposta do fixture', () => {
-    const propostas = listarPropostas()
+    const propostas = listarPropostas('user1')
     expect(propostas).toHaveLength(1)
     expect(propostas[0]).toMatchObject({ Contrato: 'PRP-2026-0001', StatusDaProposta: { Value: 'Pendente' } })
   })
 
   it('excluirProposta remove a proposta e retorna true; retorna false se não existir', () => {
-    expect(excluirProposta('PRP-2026-0001')).toBe(true)
-    expect(listarPropostas()).toHaveLength(0)
-    expect(excluirProposta('PRP-2026-0001')).toBe(false)
+    expect(excluirProposta('user1', 'PRP-2026-0001')).toBe(true)
+    expect(listarPropostas('user1')).toHaveLength(0)
+    expect(excluirProposta('user1', 'PRP-2026-0001')).toBe(false)
   })
 
   it('criarProposta calcula ValorBruto e ValorPrevistoDaPrimeiraParcela e gera o primeiro número de contrato', () => {
-    const proposta = criarProposta({
+    const proposta = criarProposta('user1', {
       LinhaCredito: 205, ValorLiquido: 10000, NumeroParcelas: 24, DataLiberacao: '2026-06-30',
     })
 
@@ -47,7 +48,7 @@ describe('legacyBackend — propostas', () => {
     expect(proposta.ValorBruto).toBe(10800)
     expect(proposta.DataDeEmissao).toBe('2026-06-30T12:00:00')
     expect(proposta.StatusDaProposta).toEqual({ Value: 'Pendente' })
-    expect(listarPropostas()).toHaveLength(2)
+    expect(listarPropostas('user1')).toHaveLength(2)
   })
 
   it('respostaInsercaoProposta usa o número do contrato gerado', () => {
@@ -55,15 +56,15 @@ describe('legacyBackend — propostas', () => {
   })
 
   it('criarProposta gera números de contrato sequenciais em chamadas sucessivas', () => {
-    const primeira = criarProposta({ LinhaCredito: 205, ValorLiquido: 5000, NumeroParcelas: 12 })
-    const segunda = criarProposta({ LinhaCredito: 205, ValorLiquido: 5000, NumeroParcelas: 12 })
+    const primeira = criarProposta('user1', { LinhaCredito: 205, ValorLiquido: 5000, NumeroParcelas: 12 })
+    const segunda = criarProposta('user1', { LinhaCredito: 205, ValorLiquido: 5000, NumeroParcelas: 12 })
 
     expect(primeira.Contrato).toBe('PRP-2026-0102')
     expect(segunda.Contrato).toBe('PRP-2026-0103')
   })
 
   it('criarProposta usa fallback de linha de crédito desconhecida', () => {
-    const proposta = criarProposta({ LinhaCredito: 999, ValorLiquido: 1000, NumeroParcelas: 6 })
+    const proposta = criarProposta('user1', { LinhaCredito: 999, ValorLiquido: 1000, NumeroParcelas: 6 })
 
     expect(proposta.DescricaoDaLinha).toBe('Linha 999')
     expect(proposta.TaxaDeJuros).toBe(0)
@@ -71,7 +72,7 @@ describe('legacyBackend — propostas', () => {
 
   it('criarProposta usa a data atual quando DataLiberacao não é informada', () => {
     const antes = new Date().toISOString()
-    const proposta = criarProposta({ LinhaCredito: 205, ValorLiquido: 1000, NumeroParcelas: 6 })
+    const proposta = criarProposta('user1', { LinhaCredito: 205, ValorLiquido: 1000, NumeroParcelas: 6 })
     const depois = new Date().toISOString()
 
     expect(proposta.DataDeEmissao).not.toContain('T12:00:00')
@@ -79,7 +80,7 @@ describe('legacyBackend — propostas', () => {
   })
 
   it('criarProposta aplica fallback de zero/um para entradas numéricas inválidas ou ausentes', () => {
-    const proposta = criarProposta({
+    const proposta = criarProposta('user1', {
       LinhaCredito: 205, ValorLiquido: undefined as unknown as number, NumeroParcelas: undefined as unknown as number,
     })
 
@@ -89,7 +90,7 @@ describe('legacyBackend — propostas', () => {
   })
 
   it('criarProposta aplica fallback de zero quando ValorLiquido é uma string não numérica', () => {
-    const proposta = criarProposta({
+    const proposta = criarProposta('user1', {
       LinhaCredito: 205, ValorLiquido: 'abc' as unknown as number, NumeroParcelas: 6,
     })
 

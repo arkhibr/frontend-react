@@ -135,6 +135,19 @@ intervalId = setInterval(() => {
 window.addEventListener('auth:unauthorized', handleUnauthorized)
 ```
 
+### Atualização 1.1 — autoridade de autenticação no gateway
+
+`sessionStorage` continua sendo a escolha de persistência por aba do shell, mas
+não é uma fronteira de autorização. O cliente agora rejeita tokens malformados,
+sem `sub`, `iat` ou `exp` válidos para evitar bypass visual. A autoridade de
+segurança é o gateway: ele valida assinatura, algoritmo, emissor, audiência e
+expiração antes de encaminhar qualquer requisição aos BFFs.
+
+O token é removido no salto gateway → BFF; a identidade validada segue por
+headers internos protegidos por chave entre serviços. Portanto, a premissa
+original de "sem dependência de back-end" não vale mais para autorização — e não
+deve valer em produção.
+
 ## Consequências
 
 ### Positivas
@@ -159,6 +172,7 @@ window.addEventListener('auth:unauthorized', handleUnauthorized)
 |-------|---|---|-----------|-------|
 | XSS injeta script que lê `sessionStorage` | L | H | Política de Content Security Policy (CSP) no Nginx; sanitização de entradas | Segurança |
 | Dessincronização de relógio causa logout prematuro | L | M | Intervalo de 60s oferece tolerância razoável; ajustável em `sessionMonitor.ts` | Time |
+| Cliente trata JWT falso como sessão válida | M | M | Validação estrutural no cliente e validação criptográfica obrigatória no gateway | Plataforma |
 
 ## Validação
 
@@ -184,3 +198,4 @@ window.addEventListener('auth:unauthorized', handleUnauthorized)
 | Versão | Data | Autor | Mudanças |
 |--------|------|-------|----------|
 | 1.0 | 2026-05-24 | Marco Mendes | Versão inicial |
+| 1.1 | 2026-07-11 | Codex | Gateway torna-se autoridade de autenticação e cliente rejeita claims inválidos |

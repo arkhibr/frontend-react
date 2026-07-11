@@ -33,7 +33,7 @@ Há ainda a questão de **ordem de carga**: se um MFE depende de outro, o shell 
 
 ### Opção 1: Manifesto dedicado (`mfe-manifest.json`) com validação fail-fast e ordenação topológica (escolhida)
 
-Um arquivo separado do `config.json`, com `schemaVersion`, lista de MFEs (`id`, `name`, `state`, `url`, `route`, `dependsOn`). O shell valida estrutura, enum de estado e integridade referencial de `dependsOn`; em seguida resolve a ordem de carga por **algoritmo de Kahn** (ordenação topológica), detectando ciclos.
+Um arquivo separado do `config.json`, com `schemaVersion`, lista de MFEs (`id`, `name`, `state`, `url`, `integrity`, `route`, `dependsOn`). O shell valida estrutura, enum de estado, URL, integridade e referências de `dependsOn`; em seguida resolve a ordem de carga por **algoritmo de Kahn** (ordenação topológica), detectando ciclos.
 
 - ✅ **Prós**: separação clara entre config de ambiente e catálogo de MFEs; validação explícita; ordem determinística; detecção de ciclo
 - ❌ **Contras**: mais um artefato para manter
@@ -73,7 +73,7 @@ Separar o manifesto do `config.json` (ADR-001) reflete duas responsabilidades di
 | `maintenance` | sim | não | exibe aviso "em manutenção" |
 | `disabled` | não | não | invisível ao usuário |
 
-Validações (fail-fast): `schemaVersion` suportada; `mfes` é array; campos obrigatórios não-vazios; `state` no enum; `dependsOn` é array de strings; `id` único; toda referência em `dependsOn` aponta para um `id` existente. A ordenação topológica lança erro listando os MFEs envolvidos em caso de ciclo.
+Validações (fail-fast): `schemaVersion` suportada; `mfes` é array; campos obrigatórios não-vazios; `state` no enum; `dependsOn` é array de strings; `id` único; toda referência em `dependsOn` aponta para um `id` existente; `route` é rota interna segura; `url` usa HTTPS em produção e pertence a `mfeAllowedOrigins`; `integrity` segue o formato `sha256-<base64>`. A ordenação topológica lança erro listando os MFEs envolvidos em caso de ciclo.
 
 ## Consequências
 
@@ -97,12 +97,15 @@ Validações (fail-fast): `schemaVersion` suportada; `mfes` é array; campos obr
 |-------|---|---|-----------|-------|
 | Manifesto inválido em produção | M | H | Validação fail-fast no boot + revisão na esteira | Plataforma |
 | Ciclo de dependência entre MFEs | L | M | Detecção explícita (Kahn) com erro nomeando os envolvidos | Plataforma |
+| Bundle adulterado no bucket | M | H | Hash SHA-256 obrigatório no manifesto e conferência antes do import | Plataforma |
 
 ## Validação
 
 - [ ] Manifesto inválido falha o boot com mensagem específica
 - [ ] `dependsOn` transitivo resolve em ordem correta
 - [ ] Ciclo de dependência é detectado e reportado
+- [ ] Origem não permitida, HTTP em produção ou `integrity` inválido impedem o boot
+- [ ] Bytes cujo SHA-256 não corresponde ao manifesto não são executados
 
 ## Links
 
@@ -119,3 +122,4 @@ Validações (fail-fast): `schemaVersion` suportada; `mfes` é array; campos obr
 | Versão | Data | Autor | Mudanças |
 |--------|------|-------|----------|
 | 1.0 | 2026-06-04 | Marco Mendes | Versão inicial |
+| 1.1 | 2026-07-11 | Codex | Campo `integrity`, allowlist de origem e validação de rota |

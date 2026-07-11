@@ -6,6 +6,7 @@
       "name": "Alteração de Endereço",
       "state": "active",
       "url": "http://localhost:4566/mfe-endereco/endereco.js",
+      "integrity": "sha256-SygiadgW+MYQQUTdBHhLPTyZy9/RpfDmESrQSdyr6Qo=",
       "route": "/endereco",
       "dependsOn": []
     },
@@ -14,6 +15,7 @@
       "name": "Simulação de Empréstimo",
       "state": "active",
       "url": "http://localhost:4566/mfe-emprestimo/emprestimo.js",
+      "integrity": "sha256-riuE71dIgkSNVQ8xufyyCjctyNU9G7DJ6oYHb22eL0c=",
       "route": "/emprestimos",
       "dependsOn": ["endereco"]
     }

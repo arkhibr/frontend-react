@@ -77,7 +77,7 @@ Adotamos a **Opção 1: `strict-dynamic` + nonce por requisição**, com dois po
 CSP de produção (enforcement), exata:
 
 ```
-default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' https: 'unsafe-inline'; style-src 'self' 'nonce-$csp_nonce'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests; report-to csp-endpoint
+default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' blob: https: 'unsafe-inline'; style-src 'self' 'nonce-$csp_nonce'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests; report-to csp-endpoint
 ```
 
 **Dev (Vite, Report-Only)** — definida em [`vite.config.ts`](../../../vite.config.ts) via `server.headers`. Em desenvolvimento a política é aplicada em modo Report-Only, tolerante a HMR e ao Service Worker do MSW, para observar violações sem quebrar o fluxo de desenvolvimento.
@@ -95,6 +95,18 @@ default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' https: 'unsaf
 
 **COEP fora de escopo.** O COEP (Cross-Origin-Embedder-Policy) **não** entra nesta decisão: habilitá-lo quebraria o `import()` cross-origin enquanto os buckets não enviarem CORP (Cross-Origin-Resource-Policy). Fica registrado como evolução futura.
 
+### Atualização 1.1 — integridade de bundle e allowlist de origem
+
+O shell não importa mais diretamente a URL remota. Ele exige `integrity` no
+formato `sha256-<base64>`, permite somente origens presentes em
+`mfeAllowedOrigins` (`config.json`; HTTPS em produção), baixa o bundle sem
+credenciais, confere SHA-256 com Web Crypto e só importa os bytes aprovados por
+uma URL `blob:`. Por isso `blob:` foi incluído em `script-src`.
+
+Essa proteção cobre alteração do bundle no bucket, não comprometimento
+simultâneo do shell e do manifesto. A assinatura assimétrica do manifesto segue
+como evolução necessária. CSP também não isola um MFE que já foi aceito.
+
 **Rollout.** O enforcement dos recursos (`script-src`, `style-src`, etc.) entra em produção desde o início. Já os Trusted Types ficam em Report-Only nesta fase (ver [ADR-013](ADR-013-trusted-types-e-reporting.md)). O playbook detalhado de rollout (Report-Only → analisar → enforce) está em [`SECURITY.md`](../../../SECURITY.md).
 
 ### Mapa código → decisão
@@ -104,6 +116,8 @@ default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' https: 'unsaf
 | [`../../../nginx.conf.template`](../../../nginx.conf.template) | CSP enforce, baseline, nonce (`sub_filter`), envsubst |
 | [`../../../vite.config.ts`](../../../vite.config.ts) | nonce (build) + CSP Report-Only (dev) |
 | [`../../../Dockerfile`](../../../Dockerfile) | filtro envsubst + defaults das vars `CSP_*` |
+| [`../../../src/app/mfe/manifest.ts`](../../../src/app/mfe/manifest.ts) | validação de origem, rota e integridade |
+| [`../../../src/app/mfe/loadMfeModule.ts`](../../../src/app/mfe/loadMfeModule.ts) | download, SHA-256 e import do Blob verificado |
 | [`../../../SECURITY.md`](../../../SECURITY.md) | referência e playbook de rollout |
 
 ## Consequências
@@ -120,6 +134,7 @@ default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' https: 'unsaf
 - `$request_id` não é um CSPRNG; risco baixo no uso atual, mitigável com `njs`/OpenResty se necessário.
 - `index.html` precisa ser servido com `no-cache` por causa do nonce por requisição.
 - COEP (e portanto isolamento cross-origin pleno) fica adiado até que os buckets enviem CORP.
+- Integridade do bundle depende de manifesto protegido; o manifesto ainda não é assinado.
 
 ## Referências
 

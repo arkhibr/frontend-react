@@ -144,7 +144,7 @@ interface PropostaFixture {
 }
 
 interface MovimentoFixture {
-  TipoLancamento: 'Credito' | 'Debito'
+  TipoLancamento: string
   Data: string
   Historico: string
   Valor: number
@@ -260,6 +260,9 @@ function toProposta(d: PropostaFixture): Proposta {
 }
 
 function toMovimento(d: MovimentoFixture): Movimento {
+  if (d.TipoLancamento !== 'Credito' && d.TipoLancamento !== 'Debito') {
+    throw new Error('Tipo de lançamento inválido no fixture')
+  }
   return { tipo: d.TipoLancamento, data: d.Data, historico: d.Historico, valor: d.Valor, saldo: d.Saldo }
 }
 

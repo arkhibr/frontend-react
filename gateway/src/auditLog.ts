@@ -1,4 +1,4 @@
-import { appendFileSync, mkdirSync } from 'node:fs'
+import { appendFile, mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
 import type { NextFunction, Request, RequestHandler, Response } from 'express'
 import { resolveTarget } from './routing.ts'
@@ -44,13 +44,11 @@ export function createAuditLog(logPath: string, bffs: Record<string, string>): R
       }
 
       try {
-        appendFileSync(logPath, `${JSON.stringify(entry)}\n`)
+        appendFile(logPath, `${JSON.stringify(entry)}\n`, (error) => {
+          if (error) console.error('[audit] failed to write audit entry', { entry: entry.correlationId }, error.message)
+        })
       } catch (error) {
-        console.error(
-          '[audit] failed to write audit entry',
-          { error, entry: entry.correlationId },
-          error instanceof Error ? error.message : String(error),
-        )
+        console.error('[audit] failed to enqueue audit entry', { entry: entry.correlationId }, String(error))
       }
     })
 

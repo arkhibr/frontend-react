@@ -5,6 +5,7 @@ export interface MfeEntry {
   name: string
   state: MfeState
   url: string
+  integrity: string
   route: string
   dependsOn: string[]
 }

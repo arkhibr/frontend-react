@@ -15,6 +15,7 @@ type AppConfig = {
   apiUrl?: string
   primaryColor?: string
   secondaryColor?: string
+  mfeAllowedOrigins?: string[]
 }
 
 let _config: AppConfig = {}
@@ -25,6 +26,11 @@ let _config: AppConfig = {}
  */
 export function getApiUrl(): string {
   return _config.apiUrl || (import.meta.env.VITE_API_BASE_URL as string | undefined) || ''
+}
+
+/** Origens explícitas que podem fornecer bundles de microfrontends. */
+export function getMfeAllowedOrigins(): string[] {
+  return Array.isArray(_config.mfeAllowedOrigins) ? _config.mfeAllowedOrigins : []
 }
 
 /**

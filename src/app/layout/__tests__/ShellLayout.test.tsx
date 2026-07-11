@@ -8,7 +8,7 @@ import { ShellLayout } from '../ShellLayout'
 import type { MfeEntry } from '@/app/mfe/types'
 
 const mk = (id: string, state: MfeEntry['state']): MfeEntry => ({
-  id, name: id.toUpperCase(), state, url: `http://x/${id}.js`, route: `/${id}`, dependsOn: [],
+  id, name: id.toUpperCase(), state, url: `http://x/${id}.js`, integrity: 'sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', route: `/${id}`, dependsOn: [],
 })
 
 function renderLayout(mfes: MfeEntry[]) {

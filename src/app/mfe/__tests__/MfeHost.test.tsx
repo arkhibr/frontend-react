@@ -16,7 +16,7 @@ vi.mock('../loadMfeModule', () => ({
 
 const entry: MfeEntry = {
   id: 'endereco', name: 'Endereço', state: 'active',
-  url: 'http://x/endereco.js', route: '/endereco', dependsOn: [],
+  url: 'http://x/endereco.js', integrity: 'sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', route: '/endereco', dependsOn: [],
 }
 
 function renderHost(e: MfeEntry) {

@@ -79,6 +79,19 @@ Concentrar auditoria e controle de tráfego no Gateway evita duplicar essas resp
 
 <img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/f28cda3c-11d3-4f59-9385-238c90c91175" />
 
+### Atualização 1.1 — fronteira de autenticação e BFFs privados
+
+O gateway é agora a fronteira de autenticação: valida algoritmo, assinatura,
+emissor, audiência, expiração e `sub` do JWT antes do proxy. Em produção usa
+JWKS/RS256; o segredo HS256 é limitado ao desenvolvimento. O Bearer é removido
+antes do encaminhamento. O gateway envia somente identidade e papéis internos,
+protegidos por `INTERNAL_GATEWAY_KEY`.
+
+Os BFFs exigem essa chave e não publicam portas no host; no Compose ficam na rede
+interna `backend`. Eles aplicam autorização por recurso usando o `sub`, validação
+de payload e limite de JSON. O rate limit é indexado pelo `sub` autenticado e a
+auditoria é assíncrona. Chamar BFF diretamente ou forjar headers internos deve
+retornar `401`.
 
 ## Consequências
 
@@ -106,6 +119,7 @@ Concentrar auditoria e controle de tráfego no Gateway evita duplicar essas resp
 | Gateway/BFFs indisponíveis derrubam toda a plataforma | M | H | Fora de escopo mitigar neste estudo (sem HA/observabilidade distribuída) — risco aceito e registrado | Arquiteto |
 | Duplicação de fixtures entre MSW do shell e fixtures internas dos BFFs diverge com o tempo | M | L | Aceito conscientemente — simulam consumidores diferentes (dev de front-end vs. runtime de BFF) | Plataforma |
 | Refactor do MFE de empréstimo introduz regressão de comportamento | M | M | Cobertura de teste ≥80% mantida antes/depois da migração; smoke test ponta a ponta via Gateway | Equipe do MFE |
+| JWT inválido ou BFF exposto libera dados | M | H | Validação no gateway, rede interna e chave entre serviços | Plataforma |
 
 ## Validação
 
@@ -113,12 +127,14 @@ Concentrar auditoria e controle de tráfego no Gateway evita duplicar essas resp
 - [ ] MFE de endereço funciona ponta a ponta através de Gateway + BFF-endereco
 - [ ] Requisição que excede o limite de tráfego recebe `429` do Gateway, sem chegar ao BFF
 - [ ] Toda requisição que passa pelo Gateway gera uma linha em `gateway/logs/audit.log` com `correlationId` rastreável na resposta
+- [ ] JWT inválido e chamada direta ao BFF recebem `401`
+- [ ] Gateway encaminha identidade interna sem repassar o Bearer
 - [ ] Nenhum código do MFE de empréstimo lê mais campos PascalCase do contrato legado
 
 ## Links
 
 - Código: [`gateway/`](../../../gateway/README.md), [`bffs/emprestimo/`](../../../bffs/emprestimo/README.md), [`bffs/endereco/`](../../../bffs/endereco/README.md)
-- ADRs relacionadas: ADR-004 (autenticação — token Bearer atravessa o novo hop sem alteração), ADR-008 (microfrontends dinâmicos — revisita "MFE fala só com o back-end")
+- ADRs relacionadas: ADR-004 (ciclo do token no navegador), ADR-008 (microfrontends dinâmicos), ADR-012 (CSP e integridade de MFE)
 
 ## Revisão
 
@@ -130,3 +146,4 @@ Concentrar auditoria e controle de tráfego no Gateway evita duplicar essas resp
 | Versão | Data | Autor | Mudanças |
 |--------|------|-------|----------|
 | 1.0 | 2026-07-05 | Marco Mendes | Versão inicial |
+| 1.1 | 2026-07-11 | Codex | Gateway autenticado, BFFs privados e autorização por recurso |

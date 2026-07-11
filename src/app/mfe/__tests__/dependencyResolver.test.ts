@@ -3,7 +3,7 @@ import { resolveLoadOrder } from '../dependencyResolver'
 import type { MfeEntry } from '../types'
 
 const mk = (id: string, dependsOn: string[] = []): MfeEntry => ({
-  id, name: id, state: 'active', url: `http://x/${id}.js`, route: `/${id}`, dependsOn,
+  id, name: id, state: 'active', url: `http://x/${id}.js`, integrity: 'sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', route: `/${id}`, dependsOn,
 })
 
 describe('resolveLoadOrder', () => {

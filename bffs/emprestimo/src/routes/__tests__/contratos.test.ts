@@ -5,6 +5,7 @@ import { createContratosRouter } from '../contratos.ts'
 
 function buildApp() {
   const app = express()
+  app.use((_req, res, next) => { res.locals.auth = { sub: 'user1', roles: [] }; next() })
   app.use(createContratosRouter())
   return app
 }
@@ -20,13 +21,18 @@ describe('rotas de contratos', () => {
     expect(res.body[1]).toMatchObject({ numero: '654321-0', temAtraso: true })
   })
 
-  it('GET /contratos/:id retorna o detalhe em camelCase, independente do id', async () => {
-    const res = await request(buildApp()).get('/contratos/qualquer-id')
+  it('GET /contratos/:id retorna o detalhe em camelCase para um contrato do usuário', async () => {
+    const res = await request(buildApp()).get('/contratos/123456-7')
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
       numero: '123456-7', saldoAtual: 9245.5,
       proximaParcela: { vencimento: '2026-07-10', valor: 944.3 },
     })
+  })
+
+  it('não revela contratos que não pertencem ao usuário ou não existem', async () => {
+    const res = await request(buildApp()).get('/contratos/999999-9')
+    expect(res.status).toBe(404)
   })
 })

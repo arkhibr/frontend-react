@@ -5,10 +5,10 @@ Motor que carrega MFEs (microfrontends) autônomos a partir de buckets S3 (Amazo
 | Arquivo | Responsabilidade | Decisão |
 |---------|------------------|---------|
 | [`types.ts`](types.ts) | Tipos do manifesto e do contrato `MfeMountContext`/`MfeModule` | ADR-009 |
-| [`manifest.ts`](manifest.ts) | Validação fail-fast do manifesto | ADR-010 |
+| [`manifest.ts`](manifest.ts) | Validação fail-fast de schema, origem, rota e `integrity` | ADR-010 |
 | [`dependencyResolver.ts`](dependencyResolver.ts) | Ordenação topológica + detecção de ciclo | ADR-010 |
 | [`loadManifest.ts`](loadManifest.ts) | Carrega `public/mfe-manifest.json` via fetch | ADR-010 |
-| [`loadMfeModule.ts`](loadMfeModule.ts) | `import()` ESM (ECMAScript Modules — módulos nativos do JavaScript) do bundle + validação do contrato | ADR-009 |
+| [`loadMfeModule.ts`](loadMfeModule.ts) | Download sem credenciais, SHA-256, import do Blob validado e contrato do módulo | ADR-009/012 |
 | [`MfeHost.tsx`](MfeHost.tsx) | Monta/desmonta o MFE numa `<div>`; injeta o contexto | ADR-009 |
 | [`MfeErrorBoundary.tsx`](MfeErrorBoundary.tsx) | Isola falhas de um MFE do shell | ADR-008 |
 
@@ -16,7 +16,7 @@ Motor que carrega MFEs (microfrontends) autônomos a partir de buckets S3 (Amazo
 
 O carregamento acontece em dois momentos: o **bootstrap** (uma vez, em `main.tsx`),
 que resolve o manifesto e a ordem de dependências, e o **mount sob demanda**, quando
-o usuário navega para a rota de um MFE e o `MfeHost` faz o `import()` do bundle.
+o usuário navega para a rota de um MFE e o `MfeHost` baixa, confere e importa o bundle.
 
 ```mermaid
 sequenceDiagram
@@ -35,11 +35,11 @@ sequenceDiagram
 
     note over Main,Rt: Bootstrap (uma vez)
     Main->>Cfg: loadConfig()
-    Cfg-->>Main: config (apiUrl, ...)
+    Cfg-->>Main: config (apiUrl, mfeAllowedOrigins, ...)
     Main->>LM: loadManifest()
     LM->>S3: fetch('/mfe-manifest.json')
     S3-->>LM: JSON do manifesto
-    LM->>V: validateManifest(data)
+    LM->>V: validateManifest(data, origins permitidas)
     V-->>LM: MfeManifest válido
     LM-->>Main: manifest
     Main->>R: resolveLoadOrder(manifest.mfes)
@@ -56,9 +56,11 @@ sequenceDiagram
     else state === 'disabled'
         Host-->>U: nada (rota omitida)
     else state === 'active'
-        Host->>Loader: loadMfeModule(entry.url)
-        Loader->>S3: import(entry.url) (ESM)
-        S3-->>Loader: módulo
+        Host->>Loader: loadMfeModule(entry.url, entry.integrity)
+        Loader->>S3: fetch(entry.url), sem credenciais
+        S3-->>Loader: bytes do bundle
+        Loader->>Loader: SHA-256 confere com integrity
+        Loader->>Loader: import(Blob verificado)
         Loader->>Loader: assertMfeModule (mount/unmount?)
         alt contrato inválido ou falha de rede
             Loader-->>Host: throw Error
@@ -79,6 +81,8 @@ Pontos-chave do diagrama:
 
 - **Fail-fast no bootstrap**: manifesto inválido ou ciclo de dependência derrubam o
   boot do shell (tela de erro em `main.tsx`), antes de qualquer MFE montar.
+- **Integridade antes da execução**: origem fora de `mfeAllowedOrigins`, URL HTTP
+  fora do localhost de desenvolvimento ou hash divergente interrompem o mount.
 - **Isolamento por MFE**: falha de rede, contrato quebrado ou erro de runtime de um
   MFE ficam contidos no `MfeErrorBoundary` — o shell e os demais MFEs seguem vivos.
 - **Contrato `mount`/`unmount`** (ADR-009): o `MfeMountPoint` injeta o

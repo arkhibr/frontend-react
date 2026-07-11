@@ -8,23 +8,30 @@ services:
       - DEBUG=0
     volumes:
       - "./.localstack:/var/lib/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
 
   bff-emprestimo:
     build:
       context: ../bffs/emprestimo
-    ports:
-      - "4001:4001"
+    expose:
+      - "4001"
     environment:
       - PORT=4001
+      - NODE_ENV=development
+      - INTERNAL_GATEWAY_KEY=local-development-gateway-key
+    networks:
+      - backend
 
   bff-endereco:
     build:
       context: ../bffs/endereco
-    ports:
-      - "4002:4002"
+    expose:
+      - "4002"
     environment:
       - PORT=4002
+      - NODE_ENV=development
+      - INTERNAL_GATEWAY_KEY=local-development-gateway-key
+    networks:
+      - backend
 
   gateway:
     build:
@@ -33,9 +40,20 @@ services:
       - "4000:4000"
     environment:
       - PORT=4000
+      - NODE_ENV=development
       - CORS_ORIGIN=http://localhost:5173
       - BFF_EMPRESTIMO_URL=http://bff-emprestimo:4001
       - BFF_ENDERECO_URL=http://bff-endereco:4002
+      - JWT_SHARED_SECRET=local-development-jwt-secret
+      - JWT_ISSUER=portal-dev
+      - JWT_AUDIENCE=portal-api
+      - INTERNAL_GATEWAY_KEY=local-development-gateway-key
     depends_on:
       - bff-emprestimo
       - bff-endereco
+    networks:
+      - backend
+
+networks:
+  backend:
+    internal: true

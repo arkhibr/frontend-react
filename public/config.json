@@ -1,5 +1,6 @@
 {
   "apiUrl": "",
   "primaryColor": "#1A56DB",
-  "secondaryColor": "#6B7280"
+  "secondaryColor": "#6B7280",
+  "mfeAllowedOrigins": ["http://localhost:4566"]
 }

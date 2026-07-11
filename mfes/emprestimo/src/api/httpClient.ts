@@ -20,6 +20,7 @@ export function createHttpClient(deps: HttpClientDeps) {
       throw new Error('Sessão expirada')
     }
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    if (res.status === 204) return undefined as T
     return res.json() as Promise<T>
   }
 }

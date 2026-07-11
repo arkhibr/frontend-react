@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import express from 'express'
 import request from 'supertest'
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { correlationId } from '../correlationId.ts'
@@ -22,6 +22,17 @@ function buildApp(logPath: string) {
   return app
 }
 
+async function readAudit(logPath: string): Promise<string> {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    if (existsSync(logPath)) {
+      const contents = readFileSync(logPath, 'utf-8').trim()
+      if (contents) return contents
+    }
+    await new Promise((resolve) => setTimeout(resolve, 5))
+  }
+  throw new Error('registro de auditoria não foi gravado')
+}
+
 describe('createAuditLog', () => {
   it('grava uma linha JSON por requisição com os campos esperados', async () => {
     tempDir = mkdtempSync(join(tmpdir(), 'gateway-audit-'))
@@ -30,7 +41,7 @@ describe('createAuditLog', () => {
 
     await request(app).get('/bff/emprestimo/contratos').expect(200)
 
-    const linhas = readFileSync(logPath, 'utf-8').trim().split('\n')
+    const linhas = (await readAudit(logPath)).split('\n')
     expect(linhas).toHaveLength(1)
 
     const entry = JSON.parse(linhas[0])
@@ -55,7 +66,7 @@ describe('createAuditLog', () => {
 
     await request(app).get('/saude').expect(200)
 
-    const entry = JSON.parse(readFileSync(logPath, 'utf-8').trim())
+    const entry = JSON.parse(await readAudit(logPath))
     expect(entry.targetBff).toBeNull()
   })
 
@@ -76,7 +87,7 @@ describe('createAuditLog', () => {
 
     await request(app).get('/bff/emprestimo/contratos').expect(200)
 
-    const entry = JSON.parse(readFileSync(logPath, 'utf-8').trim())
+    const entry = JSON.parse(await readAudit(logPath))
     expect(entry.path).toBe('/bff/emprestimo/contratos')
     expect(entry.targetBff).toBe('emprestimo')
   })

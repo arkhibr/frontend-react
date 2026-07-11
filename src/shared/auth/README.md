@@ -2,14 +2,17 @@
 
 ## Responsabilidade
 
-Infraestrutura de autenticação baseada em JWT (JSON Web Token). Gerencia o ciclo de vida do token no navegador: armazenamento isolado por aba, análise do payload, verificação de expiração e monitoramento proativo de sessão. Não contém lógica de UI nem despacha ações Redux diretamente — exceto `sessionMonitor`, que despacha `logout` como efeito colateral da expiração detectada.
+Infraestrutura de sessão baseada em JWT (JSON Web Token) no navegador. Gerencia
+armazenamento isolado por aba, análise de claims obrigatórios, expiração e
+monitoramento proativo. Não valida assinatura: a fronteira de autenticação é o
+gateway, que valida criptograficamente o token antes de encaminhar requisições.
 
 ## Estrutura
 
 | Arquivo/Pasta | Descrição |
 |---------------|-----------|
 | [`tokenStorage.ts`](./tokenStorage.ts) | Interface de leitura/escrita/limpeza do token em `sessionStorage` |
-| [`tokenParser.ts`](./tokenParser.ts) | Decodifica o payload JWT e verifica expiração pelo relógio do cliente |
+| [`tokenParser.ts`](./tokenParser.ts) | Decodifica o payload e rejeita claims obrigatórios ausentes/inválidos |
 | [`sessionMonitor.ts`](./sessionMonitor.ts) | Inicia/para o monitoramento proativo de expiração via `setInterval` (60s) e escuta o evento `auth:unauthorized` |
 
 ## Como usar
@@ -37,6 +40,9 @@ sessionMonitor.stop()
 O `sessionMonitor` combina dois mecanismos independentes de detecção de expiração:
 1. Verificação por relógio do cliente a cada 60 segundos
 2. Escuta do evento DOM `auth:unauthorized` despachado pelo `httpClient` em respostas 401
+
+Nunca use o resultado de `isTokenExpired` como autorização: ele só melhora a UX.
+O gateway é a única autoridade para aceitar ou recusar um Bearer JWT.
 
 ## Decisões relevantes
 

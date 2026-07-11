@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { loadConfig } from '../config.ts'
 
 describe('loadConfig', () => {
-  it('usa valores padrão quando nenhuma env var é definida', () => {
-    const config = loadConfig({})
+  it('usa valores de desenvolvimento quando o segredo JWT é configurado', () => {
+    const config = loadConfig({ JWT_SHARED_SECRET: 'dev-secret' })
 
     expect(config.port).toBe(4000)
     expect(config.corsOrigin).toBe('http://localhost:5173')
@@ -13,6 +13,7 @@ describe('loadConfig', () => {
     expect(config.rateLimit.globalMax).toBe(100)
     expect(config.rateLimit.mutatingMax).toBe(20)
     expect(config.auditLogPath).toBe('logs/audit.log')
+    expect(config.auth).toMatchObject({ issuer: 'portal-dev', audience: 'portal-api', sharedSecret: 'dev-secret' })
   })
 
   it('usa valores de env var quando definidos', () => {
@@ -24,6 +25,10 @@ describe('loadConfig', () => {
       RATE_LIMIT_GLOBAL_MAX: '50',
       RATE_LIMIT_MUTATING_MAX: '5',
       AUDIT_LOG_PATH: '/var/log/gateway/audit.log',
+      JWT_SHARED_SECRET: 'secret',
+      JWT_ISSUER: 'issuer',
+      JWT_AUDIENCE: 'audience',
+      INTERNAL_GATEWAY_KEY: 'gateway-key',
     })
 
     expect(config.port).toBe(5000)
@@ -33,16 +38,25 @@ describe('loadConfig', () => {
     expect(config.rateLimit.globalMax).toBe(50)
     expect(config.rateLimit.mutatingMax).toBe(5)
     expect(config.auditLogPath).toBe('/var/log/gateway/audit.log')
+    expect(config.auth).toMatchObject({ issuer: 'issuer', audience: 'audience', sharedSecret: 'secret' })
+    expect(config.internalGatewayKey).toBe('gateway-key')
   })
 
   it('cai no padrão quando uma env var numérica é malformada', () => {
     const config = loadConfig({
       PORT: 'abc',
       RATE_LIMIT_GLOBAL_MAX: 'abc',
+      JWT_SHARED_SECRET: 'secret',
     })
 
     expect(config.port).toBe(4000)
     expect(config.rateLimit.globalMax).toBe(100)
     expect(Number.isNaN(config.rateLimit.globalMax)).toBe(false)
+  })
+
+  it('falha sem autenticação configurada e exige JWKS em produção', () => {
+    expect(() => loadConfig({})).toThrow(/JWT_JWKS_URL ou JWT_SHARED_SECRET/)
+    expect(() => loadConfig({ NODE_ENV: 'production', JWT_ISSUER: 'issuer', JWT_AUDIENCE: 'audience', INTERNAL_GATEWAY_KEY: 'key' }))
+      .toThrow(/JWT_JWKS_URL/)
   })
 })

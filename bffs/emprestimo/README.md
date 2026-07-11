@@ -2,13 +2,17 @@
 
 ## Responsabilidade
 
-BFF (Backend for Frontend) do MFE de empréstimo. Expõe um contrato limpo em camelCase para todos os endpoints hoje consumidos pelo MFE, adaptando o back-end legado simulado (PascalCase, estilo `.svc`). É o caso central de "transformação de mensagem" da plataforma — ver [ADR-015](../docs/architecture/adrs/ADR-015-gateway-api-e-bff.md).
+BFF (Backend for Frontend) do MFE de empréstimo. Expõe um contrato limpo em
+camelCase, mas só aceita chamadas autenticadas pelo gateway interno. Valida
+payloads, aplica autorização por usuário e adapta o back-end legado simulado.
 
 ## Estrutura
 
 | Arquivo/Pasta | Descrição |
 |---|---|
 | [`src/config.ts`](./src/config.ts) | Porta do serviço via variável de ambiente |
+| [`src/auth.ts`](./src/auth.ts) | Valida identidade e chave interna recebidas do gateway |
+| [`src/validation.ts`](./src/validation.ts) | Validação runtime de propostas, simulações e termos |
 | [`src/legacyBackend.ts`](./src/legacyBackend.ts) | Back-end legado simulado: fixtures JSON + lógica de propostas em memória |
 | [`src/domain.ts`](./src/domain.ts) | Contrato limpo (camelCase) exposto ao MFE |
 | [`src/transform.ts`](./src/transform.ts) | Transformação legado → domínio (e domínio → legado para criação de proposta) |
@@ -30,7 +34,11 @@ npm run test:coverage
 | Variável | Descrição | Padrão |
 |---|---|---|
 | `PORT` | Porta do BFF-emprestimo | `4001` |
+| `INTERNAL_GATEWAY_KEY` | Segredo exigido do gateway; obrigatório em produção | somente dev |
+
+Não exponha este BFF com `ports` em produção. Ele deve ficar na rede interna e
+ser acessível exclusivamente pelo gateway.
 
 ## Decisões relevantes
 
-- [ADR-015](../docs/architecture/adrs/ADR-015-gateway-api-e-bff.md) — Gateway de API com BFFs
+- [ADR-015](../../docs/architecture/adrs/ADR-015-gateway-api-e-bff.md) — Gateway de API com BFFs

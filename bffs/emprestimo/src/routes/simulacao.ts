@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { obterParametrosSimulacao, obterPrimeiroVencimento, simularMultiplas } from '../legacyBackend.ts'
 import { toDataVencimentoContratosAptos, toEmprestimoSimulado, toLinhaDeCredito } from '../transform.ts'
+import { validateSimulacao } from '../validation.ts'
 
 export function createSimulacaoRouter(): Router {
   const router = Router()
@@ -13,7 +14,12 @@ export function createSimulacaoRouter(): Router {
     res.json(toDataVencimentoContratosAptos(obterPrimeiroVencimento()))
   })
 
-  router.post('/simulacao/multiplas', (_req, res) => {
+  router.post('/simulacao/multiplas', (req, res) => {
+    const validation = validateSimulacao(req.body)
+    if (!validation.ok) {
+      res.status(400).json({ error: 'invalid_request', message: validation.message })
+      return
+    }
     res.json(simularMultiplas().map(toEmprestimoSimulado))
   })
 

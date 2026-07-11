@@ -29,21 +29,21 @@ Delivery Network). A topologia e o contrato dinâmico estão descritos no
 [ADR-011](docs/architecture/adrs/ADR-011-deploy-s3-localstack.md).
 
 Essa escolha tem uma consequência direta de segurança: **o shell executa código
-de terceiros carregado de outra origem em tempo de execução**. Cada MFE é um
-módulo JavaScript que roda no mesmo contexto de origem do shell — tem acesso ao
-DOM (Document Object Model), aos tokens em memória e às APIs do navegador. Isso
-amplia significativamente a superfície de risco em comparação com uma SPA
-monolítica: um MFE comprometido (ou um bucket comprometido servindo um MFE
-adulterado) poderia, em princípio, executar código arbitrário no portal.
+de outra origem em tempo de execução**. Cada MFE roda no mesmo contexto do
+portal; portanto, isolamento por contrato de `mount`/`unmount` não é uma
+fronteira de segurança. Antes de executar um bundle, o shell verifica sua origem
+contra uma allowlist e confere o hash SHA-256 declarado no manifesto. Um bundle
+adulterado no bucket é recusado.
 
-A primeira linha de defesa é a CSP (Content Security Policy). Em vez de permitir
+A CSP (Content Security Policy) é defesa em profundidade. Em vez de permitir
 explicitamente cada origem de bucket no `script-src` (o que viraria uma lista de
 permissão frágil e crescente), o shell usa **nonce + `strict-dynamic`**: apenas
 o script-raiz do shell carrega com um nonce confiável, e a confiança é propagada
 ao `import()` dos MFEs pelo próprio navegador (ver Seção 4). A CSP transforma a
 superfície "qualquer script pode rodar" em "apenas o que o shell originou,
-explicitamente, pode rodar", controlando assim o que código de terceiros pode
-fazer mesmo quando carregado dinamicamente.
+explicitamente, pode rodar". Ela não torna seguro um MFE que já foi aceito pelo
+manifesto: esse código é confiável para fins de execução e deve ser tratado como
+parte do perímetro de confiança.
 
 A política completa está formalizada no
 [ADR-012](docs/architecture/adrs/ADR-012-content-security-policy.md)
@@ -59,7 +59,11 @@ A política completa está formalizada no
 | --- | --- | --- |
 | **XSS (inline/injeção)** | Script inline injetado, atributo de evento, ou string maliciosa promovida a `<script>` | `script-src 'nonce-$csp_nonce' 'strict-dynamic'` — apenas scripts com o nonce do request executam; sem o nonce, scripts injetados são bloqueados. Trusted Types (`require-trusted-types-for 'script'`) sinaliza — e, após a migração para enforcement, impedirá — que strings cruas virem código via sinks do DOM (hoje em Report-Only, ver Seção 5). |
 | **Clickjacking** | Página embutida em `<iframe>` de site malicioso para capturar cliques | `frame-ancestors 'none'` — o portal não pode ser embutido em frame algum, em nenhuma origem. |
-| **Supply-chain via MFE comprometido** | Bucket S3 adulterado servindo um MFE malicioso; dependência transitiva comprometida | Isolamento por contrato de `mount`/`unmount` ([ADR-009](docs/architecture/adrs/ADR-009-contrato-mount-unmount.md)); a CSP restringe o que qualquer código carregado pode fazer (`connect-src`, `default-src 'none'`); Subresource Integrity fica como evolução futura (ver Seção 9) para validar o hash do MFE antes de executá-lo. |
+| **Supply-chain via MFE comprometido** | Bucket S3 adulterado servindo um MFE malicioso | `mfe-manifest.json` declara `integrity` SHA-256; o shell permite apenas origens configuradas em `mfeAllowedOrigins`, baixa o bundle, confere o hash e só então o importa. |
+| **Acesso sem autenticação / token forjado** | Chamada direta ao gateway ou Bearer JWT inválido | Gateway valida JWT, algoritmo, assinatura, emissor, audiência e expiração antes de rotear. Tokens ausentes ou inválidos recebem `401`. |
+| **Bypass do gateway** | Chamada direta a BFF ou falsificação de cabeçalhos internos | BFFs não publicam portas no host e exigem a chave interna mais identidade injetada pelo gateway; a rede Docker `backend` é interna. |
+| **BOLA/IDOR** | Usuário solicita contrato ou proposta de outro usuário | BFF vincula os recursos ao `sub` validado e devolve `404` quando o recurso não pertence à identidade autenticada. |
+| **Abuso de lógica de negócio** | Corpo vazio, campos extras ou valores financeiros fora da faixa | Schemas de runtime validam tipo, tamanho, formato e faixa permitida antes de executar operações de mutação. |
 | **Exfiltração de dados** | Código injetado abre conexão a um servidor controlado pelo atacante (fetch/beacon/WebSocket) para vazar tokens ou dados do usuário | `connect-src 'self' ${CSP_CONNECT_SRC}` — apenas as origens de API explicitamente liberadas aceitam conexões; `default-src 'none'` fecha qualquer canal não declarado por padrão. |
 | **Mixed content** | Recurso `http://` carregado em página `https://`, sujeito a interceptação/injeção | `upgrade-insecure-requests` reescreve requisições inseguras para `https://`; HSTS (`Strict-Transport-Security`) força o navegador a usar TLS por toda a navegação subsequente. |
 | **Sequestro de base / forms** | `<base href>` injetado para redirecionar URLs relativas; `action` de formulário reescrito para enviar dados a terceiros | `base-uri 'self'` impede a troca da base do documento; `form-action 'self'` restringe o destino de submissão de formulários à própria origem. |
@@ -70,13 +74,13 @@ A política completa está formalizada no
 
 Os cabeçalhos são definidos em
 [`nginx.conf.template`](nginx.conf.template) e repetidos em cada bloco
-`location` (ver Seção 9 sobre a limitação de herança do `add_header`). Os valores
+`location` (ver Seção 10 sobre a limitação de herança do `add_header`). Os valores
 de produção são:
 
 | Header | Valor | Racional |
 | --- | --- | --- |
-| `Content-Security-Policy` (enforce) | `default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' https: 'unsafe-inline'; style-src 'self' 'nonce-$csp_nonce'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests; report-to csp-endpoint` | Política de recursos em **enforcement**. `default-src 'none'` nega tudo por padrão; cada diretiva reabre só o necessário. No `script-src`, o nonce identifica o script confiável e `strict-dynamic` propaga essa confiança ao `import()` cross-origin (Seção 4); `https:` e `'unsafe-inline'` são *fallbacks* ignorados por navegadores que suportam `strict-dynamic` — servem só de compatibilidade para navegadores legados. `object-src 'none'` elimina plugins; `report-to` aponta para o coletor de violações. |
-| `Content-Security-Policy-Report-Only` | `require-trusted-types-for 'script'; trusted-types default; report-to csp-endpoint` | Trusted Types em **modo observação**: o navegador reporta (mas não bloqueia) usos perigosos de sinks do DOM. Mantido separado do header de enforcement para permitir coletar violações sem quebrar MFEs antes da migração (Seção 8). |
+| `Content-Security-Policy` (enforce) | `default-src 'none'; script-src 'nonce-$csp_nonce' 'strict-dynamic' blob: https: 'unsafe-inline'; style-src 'self' 'nonce-$csp_nonce'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${CSP_CONNECT_SRC}; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests; report-to csp-endpoint` | Política de recursos em **enforcement**. `default-src 'none'` nega tudo por padrão. `blob:` é necessário porque o bundle já verificado por hash é importado a partir de um Blob local; não deve ser removido sem substituir o mecanismo de integridade. |
+| `Content-Security-Policy-Report-Only` | `require-trusted-types-for 'script'; trusted-types default; report-to csp-endpoint` | Trusted Types em **modo observação**: o navegador reporta (mas não bloqueia) usos perigosos de sinks do DOM. Mantido separado do header de enforcement para permitir coletar violações sem quebrar MFEs antes da migração (Seção 9). |
 | `Reporting-Endpoints` | `csp-endpoint="${CSP_REPORT_URI}"` | Declara, via Reporting API, o endpoint nomeado `csp-endpoint` referenciado por `report-to` nos dois headers acima. |
 | `Strict-Transport-Security` | `max-age=63072000; includeSubDomains` | HSTS por 2 anos, incluindo subdomínios — força TLS e impede downgrade para `http://` após a primeira visita. |
 | `X-Content-Type-Options` | `nosniff` | Impede o navegador de adivinhar (sniff) o tipo MIME, evitando que um recurso seja reinterpretado como script. |
@@ -99,16 +103,15 @@ de produção são:
   buckets — respondesse com CORP (Cross-Origin-Resource-Policy) ou passasse por
   CORS (Cross-Origin Resource Sharing) explícito. Sem CORP nos buckets, ativar
   COEP **quebraria o `import()` cross-origin** dos MFEs. Por isso COEP fica
-  registrado como evolução futura (Seção 9): só faz sentido habilitá-lo **depois**
+  registrado como evolução futura (Seção 10): só faz sentido habilitá-lo **depois**
   de garantir CORP em todos os buckets de MFE.
 
 ---
 
-## 4. Mecânica `strict-dynamic` + nonce ↔ `import()`
+## 4. Nonce, `strict-dynamic` e integridade de MFEs
 
-O desafio: carregar MFEs por `import()` cross-origin **sem** listar cada bucket
-no `script-src`. A solução combina um nonce gerado por request com
-`strict-dynamic`, em quatro passos.
+O shell baixa MFEs cross-origin sem listá-los no `script-src`. A solução combina
+nonce, `strict-dynamic`, allowlist de origem e integridade SHA-256.
 
 **(a) Build — plugin Vite injeta o placeholder.**
 Em [`vite.config.ts`](vite.config.ts), o plugin `cspNoncePlugin` roda com
@@ -124,22 +127,32 @@ deriva o nonce do identificador único da requisição. No `location = /index.ht
 `sub_filter '**CSP_NONCE**' $csp_nonce;` (com `sub_filter_once off;`) troca todas
 as ocorrências do placeholder pelo nonce. **O mesmo valor `$csp_nonce`** aparece
 no header `Content-Security-Policy` (`script-src 'nonce-$csp_nonce' ...`). Como o
-nonce muda a cada request, um atacante não consegue prevê-lo para forjar um
-script confiável.
+nonce muda a cada request. Ele oferece unicidade operacional, mas não é tratado
+como fonte criptograficamente forte; a limitação e a evolução recomendada estão
+na Seção 10.
 
-**(c) Browser — `main.tsx` é confiável e `strict-dynamic` propaga a confiança.**
+**(c) Browser — o manifesto é validado antes do download.**
+A validação em [`manifest.ts`](src/app/mfe/manifest.ts) exige `https:` (exceto
+`localhost` em desenvolvimento), rota interna, origem presente em
+`mfeAllowedOrigins` e valor `integrity` no formato `sha256-<base64>`.
+
+**(d) O bundle é conferido antes de executar.**
+[`loadMfeModule.ts`](src/app/mfe/loadMfeModule.ts) baixa os bytes sem
+credenciais, calcula SHA-256 com Web Crypto e compara o resultado ao manifesto.
+Somente os bytes aprovados são encapsulados em `Blob` e importados como módulo
+ESM. A divergência de hash interrompe o carregamento.
+
+**(e) Browser — `main.tsx` é confiável e `strict-dynamic` propaga a confiança.**
 A tag que carrega [`src/main.tsx`](src/main.tsx) traz o nonce correto, então o
 navegador a executa. A partir daí, `strict-dynamic` diz ao navegador: "qualquer
 script carregado **por** um script já confiável também é confiável, ignorando
-listas de origem". Quando `main.tsx` chama `import()` para buscar um MFE no
-bucket, esse módulo herda a confiança — **a origem do bucket não precisa estar no
-`script-src`**. É isso que torna os MFEs dinâmicos e cross-origin compatíveis com
-uma CSP estrita.
+listas de origem". O módulo já validado é importado de uma URL `blob:`, por isso
+essa origem aparece explicitamente em `script-src`.
 
-**(d) `connect-src` continua restrito — `strict-dynamic` não o cobre.**
+**(f) `connect-src` continua restrito — `strict-dynamic` não o cobre.**
 `strict-dynamic` afeta apenas o carregamento de **scripts**. Ele **não** libera
 conexões de rede. Portanto, as origens das APIs que os MFEs consomem precisam
-estar explicitamente em `connect-src` via `${CSP_CONNECT_SRC}` (Seção 7). Um MFE
+estar explicitamente em `connect-src` via `${CSP_CONNECT_SRC}` (Seção 8). Um MFE
 pode ser carregado (script), mas só falará com as APIs declaradas.
 
 ```mermaid
@@ -162,9 +175,9 @@ sequenceDiagram
 
     note over Browser,Main: Fase 3 — Execucao do shell
     Browser->>Main: nonce confere, executa main.tsx confiavel
-    Main->>Bucket: import dinamico do MFE cross-origin
-    Note right of Bucket: strict-dynamic propaga confianca ao import
-    Bucket-->>Main: modulo ESM do MFE executa
+    Main->>Bucket: fetch do bundle cross-origin
+    Main->>Main: SHA-256 confere com integrity do manifesto
+    Main->>Main: import do Blob validado
 
     note over Main,Bucket: Fase 4 — Rede do MFE
     Main->>Main: MFE chama API — connect-src precisa liberar a origem
@@ -178,7 +191,7 @@ Trusted Types está hoje em **Report-Only** (`require-trusted-types-for 'script'
 trusted-types default`). Isso significa que o navegador **reporta**, mas **ainda
 não bloqueia**, atribuições de strings cruas a sinks perigosos do DOM
 (`innerHTML`, `outerHTML`, `document.write`, `eval`, `setAttribute` de eventos,
-`src` de `<script>`, etc.). A migração para enforcement está descrita na Seção 8.
+`src` de `<script>`, etc.). A migração para enforcement está descrita na Seção 9.
 
 **O que evitar.** Não atribua strings cruas a sinks do DOM. O exemplo clássico:
 
@@ -209,7 +222,7 @@ O nome da policy deve ser único por MFE. Note que o header declara
 `trusted-types default` — ao migrar para enforcement, a lista de policies
 permitidas será ajustada para incluir as policies legítimas de cada MFE.
 
-**Migração para enforcement.** Após o período de observação (Seção 8), o header
+**Migração para enforcement.** Após o período de observação (Seção 9), o header
 `Content-Security-Policy-Report-Only` com as diretivas de Trusted Types passará a
 ser emitido como `Content-Security-Policy` (enforcement). A partir daí, qualquer
 uso de string crua em sink do DOM **lançará exceção** em vez de apenas reportar.
@@ -223,7 +236,7 @@ As violações de CSP e de Trusted Types são enviadas pelo navegador ao endpoin
 nomeado `csp-endpoint`, declarado em `Reporting-Endpoints` e referenciado por
 `report-to` nos dois headers de política.
 
-**Configuração.** Defina `${CSP_REPORT_URI}` (Seção 7) com a URL absoluta do seu
+**Configuração.** Defina `${CSP_REPORT_URI}` (Seção 8) com a URL absoluta do seu
 coletor de relatórios. O envsubst do Nginx injeta esse valor em
 `Reporting-Endpoints: csp-endpoint="${CSP_REPORT_URI}"`.
 
@@ -241,7 +254,45 @@ infraestrutura.
 
 ---
 
-## 7. Configuração por ambiente
+## 7. Autenticação, autorização e fronteira de API
+
+O gateway é a única porta de entrada pública para os BFFs. Antes de aplicar
+auditoria, rate limit e proxy, ele exige `Authorization: Bearer <JWT>` e valida
+assinatura, algoritmo, emissor, audiência, expiração e formato de `sub`.
+Produção usa `RS256` com JWKS; `HS256` com segredo compartilhado é permitido
+somente no desenvolvimento.
+
+Após a validação, o gateway remove o header `Authorization` antes de encaminhar
+a requisição. Em seu lugar, envia identidade e papéis em headers internos,
+acompanhados de `X-Internal-Gateway-Key`. Cada BFF exige a chave e um `sub`
+válido antes de montar suas rotas. Essa chave é uma defesa entre serviços, não
+substitui a validação do JWT no gateway.
+
+Os BFFs aplicam autorização de objeto usando o `sub`: recursos sem vínculo com a
+identidade retornam `404`, evitando enumeração. Entradas mutáveis são validadas
+em runtime e o parser JSON aceita no máximo 16 KB; JSON malformado retorna `400`
+e corpo acima do limite retorna `413`.
+
+O rate limit usa o `sub` autenticado como chave. A auditoria registra método,
+path, BFF de destino, status, duração, IP e correlação de forma assíncrona; o
+header de correlação recebido só é aceito se tiver formato e tamanho seguros.
+
+### Rede e contêineres
+
+Em [`infra/docker-compose.yml`](infra/docker-compose.yml), os BFFs usam apenas
+`expose`, não `ports`, e ficam na rede Docker interna `backend`; apenas o gateway
+publica a porta `4000`. As imagens Node executam como usuário `node` e os
+Dockerfiles usam `npm ci`. A imagem de produção define `NODE_ENV=production`,
+logo configurações críticas ausentes fazem o processo falhar no boot.
+
+### Testes de segurança
+
+As suítes verificam token ausente ou forjado, propagação segura da identidade,
+acesso direto a BFF, acesso a objeto inexistente/não autorizado, payloads
+inválidos, limites de negócio, origem não permitida de MFE e hash de bundle
+divergente. A execução completa atual soma 248 testes automatizados.
+
+## 8. Configuração por ambiente
 
 A política é parametrizada por variáveis de ambiente substituídas pelo envsubst
 do Nginx no boot do container. O ponto-chave é **restringir** o que o envsubst
@@ -253,6 +304,11 @@ toca, para não destruir as variáveis de runtime do Nginx (`$request_id`,
 | `CSP_CONNECT_SRC` | Origens de API que os MFEs consomem, adicionadas a `connect-src`. Lista separada por espaço de origens `https://`. |
 | `CSP_REPORT_URI` | URL absoluta do coletor de relatórios de violação (injetada em `Reporting-Endpoints`). |
 | `NGINX_ENVSUBST_FILTER` | Definida como `^CSP_` — instrui o envsubst a substituir **apenas** variáveis cujo nome começa com `CSP_`. Isso **preserva** `$request_id` e `$csp_nonce`, que são variáveis internas do Nginx e não devem ser tocadas. |
+| `JWT_JWKS_URL` | Endpoint HTTPS do JWKS. Obrigatório no gateway em produção; ativa validação `RS256`. |
+| `JWT_ISSUER` / `JWT_AUDIENCE` | Valores obrigatórios de emissor e audiência aceitos pelo gateway. |
+| `INTERNAL_GATEWAY_KEY` | Segredo entre gateway e BFFs. Obrigatório em produção; deve vir de um secret manager. |
+| `TRUST_PROXY` | Use `true` somente atrás de proxy reverso confiável; caso contrário, mantenha ausente/falso. |
+| `mfeAllowedOrigins` | Campo de `config.json` com as origens autorizadas a fornecer bundles; produção exige HTTPS e desenvolvimento permite `localhost` HTTP. Ausência equivale a nenhuma origem remota permitida. |
 
 **Por que o filtro importa.** Sem `NGINX_ENVSUBST_FILTER=^CSP_`, o envsubst
 tentaria expandir `$csp_nonce` e `$request_id` (que não existem como variáveis de
@@ -266,6 +322,10 @@ de runtime intacto.
 CSP_CONNECT_SRC="https://api.plataforma.exemplo.com https://emprestimo-api.exemplo.com"
 CSP_REPORT_URI="https://csp-collector.exemplo.com/report"
 NGINX_ENVSUBST_FILTER="^CSP_"
+JWT_JWKS_URL="https://id.exemplo.com/.well-known/jwks.json"
+JWT_ISSUER="https://id.exemplo.com/"
+JWT_AUDIENCE="portal-api"
+INTERNAL_GATEWAY_KEY="<secret-gerenciado>"
 ```
 
 **Exemplo — desenvolvimento.** O dev server do Vite **não** usa Nginx nem nonce;
@@ -298,7 +358,7 @@ apenas reportado em `/__csp-report`.
 
 ---
 
-## 8. Playbook de rollout
+## 9. Playbook de rollout
 
 A estratégia é introduzir a política em camadas, observando antes de impor o que
 pode quebrar, conforme o
@@ -322,7 +382,7 @@ pode quebrar, conforme o
 
 ---
 
-## 9. Limitações conhecidas
+## 10. Limitações conhecidas
 
 - **`$request_id` não é um CSPRNG.** O nonce deriva de `$request_id`, que é único
   por request mas **não** é um CSPRNG (Cryptographically Secure Pseudo-Random
@@ -338,16 +398,21 @@ pode quebrar, conforme o
   relatórios em dev é apenas o handler MSW que loga no console
   ([`src/mocks/handlers.ts`](src/mocks/handlers.ts)); não há agregação,
   persistência nem alertas. Um coletor de produção real é trabalho futuro.
-- **COEP e Subresource Integrity como evolução futura.** COEP fica fora até que
-  CORP esteja garantido em todos os buckets de MFE (Seção 3). Subresource
-  Integrity (validação por hash do MFE antes de executar) é uma defesa adicional
-  de supply-chain ainda não implementada, dependente de pipeline que gere e
-  publique os hashes dos artefatos.
+- **Manifesto não é assinado.** A integridade protege contra alteração do bundle
+  no bucket, mas não contra comprometimento simultâneo do shell/manifesto: quem
+  puder trocar `mfe-manifest.json` também poderá trocar o hash esperado. Uma
+  assinatura assimétrica do manifesto é a próxima evolução recomendada.
+- **MFEs não são isolados por processo/origem.** Um MFE cujo hash seja válido
+  ainda executa no contexto do portal. Trate autores e pipeline de MFE como
+  confiáveis; para módulos de menor confiança, use iframe cross-origin e
+  capacidades limitadas.
+- **COEP permanece fora.** COEP fica fora até que CORP esteja garantido em todos
+  os buckets de MFE (Seção 3).
 - **O CSP de enforcement (produção) não é coberto por teste automatizado.** O
   E2E (`tests/e2e/csp.spec.ts`) valida apenas o header Report-Only do servidor de
   dev (Vite). A substituição do nonce via `sub_filter`, o envsubst e o header de
   enforcement do Nginx são exercitados apenas pelo **smoke test manual do
-  contêiner** (Seção 8 / passo de verificação) — a "máquina de nonce" do Nginx
+  contêiner** (Seção 9 / passo de verificação) — a "máquina de nonce" do Nginx
   fica sem cobertura de regressão automatizada.
 - **`report-to` sem fallback `report-uri`.** Navegadores que não implementam a
   Reporting API (`report-to`) não enviarão violações. É aceitável para a stack
@@ -362,3 +427,5 @@ pode quebrar, conforme o
 - [ADR-011 — Build independente e deploy de MFEs em S3 (LocalStack)](docs/architecture/adrs/ADR-011-deploy-s3-localstack.md)
 - [ADR-012 — Content Security Policy](docs/architecture/adrs/ADR-012-content-security-policy.md)
 - [ADR-013 — Trusted Types e Reporting API em Report-Only](docs/architecture/adrs/ADR-013-trusted-types-e-reporting.md)
+- [ADR-004 — Tática de autenticação](docs/architecture/adrs/ADR-004-autenticacao.md)
+- [ADR-015 — Gateway de API e BFFs](docs/architecture/adrs/ADR-015-gateway-api-e-bff.md)

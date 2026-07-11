@@ -22,7 +22,7 @@ function MfeMountPoint({ entry }: { entry: MfeEntry }) {
     let cancelled = false
 
     const loadStart = performance?.now?.() ?? 0
-    loadMfeModule(entry.url, entry.id)
+    loadMfeModule(entry.url, entry.integrity, entry.id)
       .then((m) => {
         if (cancelled) return
         mod = m
@@ -53,7 +53,7 @@ function MfeMountPoint({ entry }: { entry: MfeEntry }) {
       cancelled = true
       if (mod && el) mod.unmount(el)
     }
-  }, [entry.url, entry.route, entry.name, token, dispatch])
+  }, [entry.url, entry.integrity, entry.route, entry.name, entry.id, token, dispatch])
 
   if (loadError) throw loadError
 

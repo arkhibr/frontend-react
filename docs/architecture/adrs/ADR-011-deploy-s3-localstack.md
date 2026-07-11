@@ -76,7 +76,16 @@ Cada MFE em seu próprio repositório, com CI/CD próprio, `CODEOWNERS` e branch
 
 A independência de **build e deploy** — o que de fato sustenta a arquitetura de MFEs — é preservada na Opção B: cada pasta tem seu `package.json`, build e script de deploy. O que a Opção B **não** demonstra é o isolamento de **repositório** (controle de escrita, pipeline e propriedade por equipe). Para uma POC de estudo, o repo único reduz atrito sem comprometer o aprendizado do mecanismo central. **Em produção, microfrontends pedem repositório isolado por MFE.**
 
-O `import()` cross-origin do bundle (shell em uma origem, bucket em `:4566`) exige `Access-Control-Allow-Origin` no bucket — configurado no script de deploy.
+O download cross-origin do bundle (shell em uma origem, bucket em `:4566`) exige `Access-Control-Allow-Origin` no bucket — configurado no script de deploy.
+
+### Atualização 1.1 — publicação vinculada ao hash do manifesto
+
+O deploy orquestrado da raiz (`npm run deploy`) calcula SHA-256 do arquivo gerado
+em `dist/`, publica o bundle, confirma HTTP 200 no bucket e atualiza o campo
+`integrity` da entrada correspondente em `public/mfe-manifest.json`. Assim, o
+manifesto acompanha o artefato efetivamente publicado. Pipelines de produção
+devem executar a mesma etapa de forma atômica: bundle e manifesto precisam ser
+promovidos juntos.
 
 ### Diagrama — pipeline de deploy
 
@@ -85,7 +94,8 @@ O `import()` cross-origin do bundle (shell em uma origem, bucket em `:4566`) exi
 graph LR
     src["mfes/endereco/src"] -->|"vite build (lib)"| dist["dist/endereco.js"]
     dist -->|"AWS SDK v3 PutObject"| bucket["S3 bucket\nmfe-endereco (LocalStack)"]
-    bucket -->|"import() + CORS"| shell["Shell"]
+    bucket -->|"fetch + CORS"| shell["Shell"]
+    dist -->|"SHA-256"| manifest["mfe-manifest.json"]
 ```
 
 ## Consequências
@@ -112,12 +122,14 @@ graph LR
 |-------|---|---|-----------|-------|
 | Falta de CORS quebra o `import()` | M | H | CORS configurado no deploy; verificado no E2E | Plataforma |
 | Repo único cria acoplamento informal entre MFEs | M | M | Disciplina de pastas; migração para multi-repo em produção | Arquiteto |
+| Manifesto aponta para hash desatualizado | M | H | Deploy orquestrado recalcula `integrity` após validar o upload | Plataforma |
 
 ## Validação
 
 - [ ] `npm run build` em `mfes/<id>/` gera ESM único
 - [ ] `npm run deploy` publica no bucket e o bundle responde 200 com CORS
 - [ ] Shell carrega o bundle cross-origin via `import()`
+- [ ] Hash publicado no manifesto confere com os bytes do bundle no bucket
 
 ## Links
 
@@ -134,3 +146,4 @@ graph LR
 | Versão | Data | Autor | Mudanças |
 |--------|------|-------|----------|
 | 1.0 | 2026-06-04 | Marco Mendes | Versão inicial |
+| 1.1 | 2026-07-11 | Codex | Atualização automatizada de `integrity` no deploy orquestrado |

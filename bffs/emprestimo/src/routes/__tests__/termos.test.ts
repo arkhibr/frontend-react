@@ -6,6 +6,7 @@ import { createTermosRouter } from '../termos.ts'
 function buildApp() {
   const app = express()
   app.use(express.json())
+  app.use((_req, res, next) => { res.locals.auth = { sub: 'user1', roles: [] }; next() })
   app.use(createTermosRouter())
   return app
 }

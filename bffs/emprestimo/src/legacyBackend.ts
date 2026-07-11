@@ -127,9 +127,17 @@ const propostaInsertFixture = readFixture<{ numeroDoContrato: string }>('propost
 
 const ANO_FIXTURE_PROPOSTA = 2026
 const PRIMEIRO_NUMERO_PROPOSTA_GERADA = 102
+const FIXTURE_OWNER = 'user1'
+
+export function isFixtureOwner(owner: string): boolean {
+  return owner === FIXTURE_OWNER
+}
 
 let proximoNumeroProposta = PRIMEIRO_NUMERO_PROPOSTA_GERADA
-let propostasEmMemoria: PropostaLegacy[] = propostasListFixture.map(clonarProposta)
+let propostasEmMemoria: Array<{ owner: string; proposta: PropostaLegacy }> = propostasListFixture.map((proposta) => ({
+  owner: FIXTURE_OWNER,
+  proposta: clonarProposta(proposta),
+}))
 
 function clonarProposta(proposta: PropostaLegacy): PropostaLegacy {
   return { ...proposta, StatusDaProposta: { ...proposta.StatusDaProposta } }
@@ -143,28 +151,33 @@ function gerarNumeroProposta(): string {
 
 export function resetPropostasEmMemoria(): void {
   proximoNumeroProposta = PRIMEIRO_NUMERO_PROPOSTA_GERADA
-  propostasEmMemoria = propostasListFixture.map(clonarProposta)
+  propostasEmMemoria = propostasListFixture.map((proposta) => ({ owner: FIXTURE_OWNER, proposta: clonarProposta(proposta) }))
 }
 
-export function listarContratos(): ContratoLegacy[] {
-  return contratosList
+export function listarContratos(owner: string): ContratoLegacy[] {
+  return owner === FIXTURE_OWNER ? contratosList : []
 }
 
-export function obterContrato(_id: string): ContratoLegacy {
-  return contratosDetail
+export function obterContrato(owner: string, id: string): ContratoLegacy | undefined {
+  if (owner !== FIXTURE_OWNER || !contratosList.some((contrato) => contrato.Contrato === id)) return undefined
+  return id === contratosDetail.Contrato ? contratosDetail : contratosList.find((contrato) => contrato.Contrato === id)
 }
 
-export function listarPropostas(): PropostaLegacy[] {
-  return propostasEmMemoria.map(clonarProposta)
+export function podeAcessarContrato(owner: string, id: string): boolean {
+  return owner === FIXTURE_OWNER && contratosList.some((contrato) => contrato.Contrato === id)
 }
 
-export function excluirProposta(id: string): boolean {
+export function listarPropostas(owner: string): PropostaLegacy[] {
+  return propostasEmMemoria.filter((item) => item.owner === owner).map((item) => clonarProposta(item.proposta))
+}
+
+export function excluirProposta(owner: string, id: string): boolean {
   const totalAntes = propostasEmMemoria.length
-  propostasEmMemoria = propostasEmMemoria.filter((p) => p.Contrato !== id)
+  propostasEmMemoria = propostasEmMemoria.filter((item) => item.owner !== owner || item.proposta.Contrato !== id)
   return propostasEmMemoria.length !== totalAntes
 }
 
-export function criarProposta(body: PropostaMockInput): PropostaLegacy {
+export function criarProposta(owner: string, body: PropostaMockInput): PropostaLegacy {
   const linha = parametrosFixture.LinhasDeEmprestimo.find((item) => item.CodigoDaLinha === body.LinhaCredito)
   const valorLiquido = Number(body.ValorLiquido) || 0
 
@@ -178,7 +191,7 @@ export function criarProposta(body: PropostaMockInput): PropostaLegacy {
     NumeroDeParcelas: Number(body.NumeroParcelas) || 1,
     StatusDaProposta: { Value: 'Pendente' },
   }
-  propostasEmMemoria = [proposta, ...propostasEmMemoria]
+  propostasEmMemoria = [{ owner, proposta }, ...propostasEmMemoria]
   return proposta
 }
 

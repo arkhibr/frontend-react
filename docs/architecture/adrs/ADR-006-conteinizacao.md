@@ -33,3 +33,7 @@ A compilação usa múltiplos estágios: o primeiro estágio usa Node para compi
 - O `nginx.conf` deve ser revisado ao adicionar rotas que não sejam SPA (ex: endpoints de saúde)
 
 > **Atualização (ADR-012):** a configuração de Nginx passou a ser um **template** (`nginx.conf.template` em `/etc/nginx/templates/`) com **envsubst em tempo de execução**, restrito às variáveis `CSP_*` via `NGINX_ENVSUBST_FILTER`. Isso refina (não revoga) esta ADR: as variáveis de *build* do front-end seguem injetadas em compilação; apenas os parâmetros de CSP (Content Security Policy) por ambiente (`CSP_CONNECT_SRC`, `CSP_REPORT_URI`) são resolvidos no boot do contêiner. Ver [ADR-012](ADR-012-content-security-policy.md) e [`SECURITY.md`](../../../SECURITY.md).
+
+> **Atualização (segurança de serviços):** as imagens Node do gateway e dos BFFs
+> usam `npm ci`, definem `NODE_ENV=production` e executam como usuário `node`.
+> Os BFFs não publicam portas no host no Compose; ficam na rede interna `backend`.

@@ -4,7 +4,8 @@
 // ar, instala as deps de cada MFE se faltarem, compila e delega o upload ao
 // script de deploy do próprio MFE, validando que o bundle responde 200.
 import { execSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { setTimeout as sleep } from 'node:timers/promises'
 
 const ENDPOINT = process.env.S3_ENDPOINT ?? 'http://localhost:4566'
@@ -12,12 +13,18 @@ const HEALTH = `${ENDPOINT}/_localstack/health`
 const COMPOSE_FILE = 'infra/docker-compose.yml'
 const READY_TIMEOUT_MS = 60_000
 const POLL_STEP_MS = 2_000
+const MANIFEST_PATH = 'public/mfe-manifest.json'
 
 const MFES = [
   // endereco primeiro: emprestimo declara dependsOn: ["endereco"] no manifesto.
-  { dir: 'mfes/endereco', bucket: 'mfe-endereco', file: 'endereco.js' },
-  { dir: 'mfes/emprestimo', bucket: 'mfe-emprestimo', file: 'emprestimo.js' },
+  { id: 'endereco', dir: 'mfes/endereco', bucket: 'mfe-endereco', file: 'endereco.js' },
+  { id: 'emprestimo', dir: 'mfes/emprestimo', bucket: 'mfe-emprestimo', file: 'emprestimo.js' },
 ]
+
+type Manifest = {
+  schemaVersion: number
+  mfes: Array<{ id: string; integrity: string }>
+}
 
 function run(cmd: string, cwd?: string): void {
   execSync(cmd, { cwd, stdio: 'inherit' })
@@ -73,6 +80,19 @@ async function deployMfe(mfe: (typeof MFES)[number]): Promise<void> {
     )
   }
   console.log(`  ✓ publicado e validado: ${url}`)
+  updateManifestIntegrity(mfe)
+}
+
+function updateManifestIntegrity(mfe: (typeof MFES)[number]): void {
+  const bundlePath = `${mfe.dir}/dist/${mfe.file}`
+  const integrity = `sha256-${createHash('sha256').update(readFileSync(bundlePath)).digest('base64')}`
+  const manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf-8')) as Manifest
+  const entry = manifest.mfes.find((item) => item.id === mfe.id)
+  if (!entry) throw new Error(`Manifesto não possui entrada para o MFE "${mfe.id}".`)
+
+  entry.integrity = integrity
+  writeFileSync(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`)
+  console.log(`  ✓ manifesto atualizado: ${mfe.id} → ${integrity}`)
 }
 
 async function main(): Promise<void> {

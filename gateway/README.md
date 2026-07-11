@@ -2,16 +2,19 @@
 
 ## Responsabilidade
 
-Porta única de entrada da plataforma entre os MFEs e os BFFs. Aplica correlação de requisição, controle de tráfego (rate limiting) e auditoria antes de rotear cada requisição, por prefixo de path, ao BFF correspondente.
+Porta única de entrada pública entre os MFEs e os BFFs. Valida JWT antes de
+aplicar correlação, controle de tráfego e auditoria; então remove o Bearer e
+encaminha somente a identidade interna ao BFF correspondente.
 
 ## Estrutura
 
 | Arquivo | Descrição |
 |---|---|
 | [`src/config.ts`](./src/config.ts) | Configuração via variáveis de ambiente (porta, URLs dos BFFs, limites de tráfego, caminho do log de auditoria) |
+| [`src/auth.ts`](./src/auth.ts) | Validação de JWT, claims e algoritmo permitido |
 | [`src/correlationId.ts`](./src/correlationId.ts) | Gera/propaga `X-Correlation-Id` por requisição |
-| [`src/rateLimit.ts`](./src/rateLimit.ts) | Limites de tráfego global e de mutação (POST/PUT/DELETE/PATCH) |
-| [`src/auditLog.ts`](./src/auditLog.ts) | Grava uma linha JSON por requisição em `logs/audit.log` |
+| [`src/rateLimit.ts`](./src/rateLimit.ts) | Limites global e de mutação por usuário autenticado |
+| [`src/auditLog.ts`](./src/auditLog.ts) | Grava JSON lines de forma assíncrona |
 | [`src/routing.ts`](./src/routing.ts) | Resolve o BFF alvo a partir do prefixo `/bff/<nome>` |
 | [`src/proxy.ts`](./src/proxy.ts) | Roteia/encaminha para o BFF, reescrevendo o prefixo |
 | [`src/app.ts`](./src/app.ts) | Monta o pipeline de middlewares — usado pelos testes via `supertest` |
@@ -37,6 +40,16 @@ npm run test:coverage
 | `RATE_LIMIT_GLOBAL_MAX` | Requisições/minuto por IP (todas as rotas) | `100` |
 | `RATE_LIMIT_MUTATING_MAX` | Requisições/minuto por IP para POST/PUT/DELETE/PATCH | `20` |
 | `AUDIT_LOG_PATH` | Caminho do arquivo de auditoria (JSON lines) | `logs/audit.log` |
+| `JWT_JWKS_URL` | URL HTTPS do JWKS; obrigatória em produção, usa `RS256` | — |
+| `JWT_ISSUER` | Emissor esperado do JWT; obrigatório em produção | `portal-dev` (dev) |
+| `JWT_AUDIENCE` | Audiência esperada do JWT; obrigatório em produção | `portal-api` (dev) |
+| `JWT_SHARED_SECRET` | Segredo `HS256`, permitido apenas fora de produção | — |
+| `INTERNAL_GATEWAY_KEY` | Segredo encaminhado aos BFFs; obrigatório em produção | somente dev |
+| `TRUST_PROXY` | Defina `true` apenas atrás de proxy reverso confiável | `false` |
+
+Em produção, configure `JWT_JWKS_URL`, `JWT_ISSUER`, `JWT_AUDIENCE` e
+`INTERNAL_GATEWAY_KEY` em um secret manager. Não publique BFFs no host e não
+use `JWT_SHARED_SECRET` em produção.
 
 ## Decisões relevantes
 
