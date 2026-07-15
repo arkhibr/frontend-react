@@ -11,19 +11,13 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "express-rate-limit": "^7.5.0",
-    "http-proxy-middleware": "^3.0.3",
+    "@hono/node-server": "^2.0.9",
+    "hono": "^4.12.30",
     "jose": "^6.1.0"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.3",
     "@types/node": "^24.12.3",
-    "@types/supertest": "^6.0.3",
     "@vitest/coverage-v8": "^4.1.7",
-    "supertest": "^7.1.1",
     "typescript": "~6.0.2",
     "vitest": "^4.1.7"
   }

@@ -86,3 +86,4 @@ O custo de carga dinâmica desse mecanismo é medido e documentado em [`docs/per
 | [ADR-013](adrs/ADR-013-trusted-types-e-reporting.md) | **Trusted Types e Reporting API** | Proposed |
 | [ADR-014](adrs/ADR-014-css-e-contrato-visual-em-microfrontends.md) | **CSS e contrato visual em microfrontends dinâmicos** | Proposed |
 | [ADR-015](adrs/ADR-015-gateway-api-e-bff.md) | **Gateway de API com BFFs** | Proposed |
+| [ADR-016](adrs/ADR-016-hono-gateway-e-bffs.md) | **Hono como framework web de Gateway e BFFs** | Proposed |

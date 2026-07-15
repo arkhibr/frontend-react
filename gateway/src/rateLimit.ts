@@ -1,5 +1,5 @@
-import rateLimit from 'express-rate-limit'
-import type { Request, RequestHandler, Response } from 'express'
+import type { MiddlewareHandler } from 'hono'
+import type { GatewayEnv } from './types.ts'
 
 export interface RateLimitOptions {
   windowMs: number
@@ -9,35 +9,58 @@ export interface RateLimitOptions {
 
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'DELETE', 'PATCH'])
 
-function tooManyRequests(_req: Request, res: Response): void {
-  res.status(429).json({
-    error: 'rate_limit_exceeded',
-    message: 'Limite de requisições excedido.',
-    correlationId: (res.locals.correlationId as string | undefined) ?? 'unknown',
-  })
+interface Bucket {
+  count: number
+  resetAt: number
+}
+
+function createLimiter(opts: {
+  windowMs: number
+  max: number
+  keyPrefix: string
+  applies: (method: string) => boolean
+}): MiddlewareHandler<GatewayEnv> {
+  const buckets = new Map<string, Bucket>()
+
+  return async (c, next) => {
+    if (!opts.applies(c.req.method)) {
+      await next()
+      return
+    }
+
+    const now = Date.now()
+    const identity = c.get('auth')?.sub ?? c.req.header('x-forwarded-for') ?? 'unknown'
+    const key = `${opts.keyPrefix}:${identity}`
+    const bucket = buckets.get(key)
+
+    if (!bucket || bucket.resetAt <= now) {
+      buckets.set(key, { count: 1, resetAt: now + opts.windowMs })
+      await next()
+      return
+    }
+
+    if (bucket.count >= opts.max) {
+      return c.json({
+        error: 'rate_limit_exceeded',
+        message: 'Limite de requisições excedido.',
+        correlationId: c.get('correlationId') ?? 'unknown',
+      }, 429)
+    }
+
+    bucket.count += 1
+    await next()
+  }
 }
 
 export function createRateLimiters(
   opts: RateLimitOptions,
-): { global: RequestHandler; mutating: RequestHandler } {
-  const global = rateLimit({
+): { global: MiddlewareHandler<GatewayEnv>; mutating: MiddlewareHandler<GatewayEnv> } {
+  const global = createLimiter({ windowMs: opts.windowMs, max: opts.globalMax, keyPrefix: 'global', applies: () => true })
+  const mutating = createLimiter({
     windowMs: opts.windowMs,
-    limit: opts.globalMax,
-    standardHeaders: true,
-    legacyHeaders: false,
-    handler: tooManyRequests,
-    keyGenerator: (req, res) => (res.locals.auth?.sub as string | undefined) ?? req.ip ?? 'unknown',
+    max: opts.mutatingMax,
+    keyPrefix: 'mutating',
+    applies: (method) => MUTATING_METHODS.has(method),
   })
-
-  const mutating = rateLimit({
-    windowMs: opts.windowMs,
-    limit: opts.mutatingMax,
-    standardHeaders: true,
-    legacyHeaders: false,
-    handler: tooManyRequests,
-    keyGenerator: (req, res) => (res.locals.auth?.sub as string | undefined) ?? req.ip ?? 'unknown',
-    skip: (req) => !MUTATING_METHODS.has(req.method),
-  })
-
   return { global, mutating }
 }

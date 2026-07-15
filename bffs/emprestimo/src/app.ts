@@ -1,5 +1,5 @@
-import express from 'express'
-import type { Application } from 'express'
+import { Hono } from 'hono'
+import { bodyLimit } from 'hono/body-limit'
 import { createConsultasRouter } from './routes/consultas.ts'
 import { createContratosRouter } from './routes/contratos.ts'
 import { createPropostasRouter } from './routes/propostas.ts'
@@ -7,26 +7,30 @@ import { createSimulacaoRouter } from './routes/simulacao.ts'
 import { createTermosRouter } from './routes/termos.ts'
 import { createInternalAuthentication } from './auth.ts'
 import type { BffConfig } from './config.ts'
+import type { BffEnv } from './types.ts'
 
-export function createApp(config: Pick<BffConfig, 'internalGatewayKey'>): Application {
-  const app = express()
-  app.use(express.json({ limit: '16kb', strict: true }))
+export function createApp(config: Pick<BffConfig, 'internalGatewayKey'>): Hono<BffEnv> {
+  const app = new Hono<BffEnv>()
+
+  app.use(
+    bodyLimit({
+      maxSize: 16 * 1024,
+      onError: (c) => c.json({ error: 'payload_too_large', message: 'Payload excede o limite permitido.' }, 413),
+    }),
+  )
   app.use(createInternalAuthentication(config.internalGatewayKey))
-  app.use(createContratosRouter())
-  app.use(createPropostasRouter())
-  app.use(createConsultasRouter())
-  app.use(createSimulacaoRouter())
-  app.use(createTermosRouter())
-  app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (err instanceof SyntaxError && 'body' in err) {
-      res.status(400).json({ error: 'invalid_json', message: 'JSON inválido.' })
-      return
+  app.route('/', createContratosRouter())
+  app.route('/', createPropostasRouter())
+  app.route('/', createConsultasRouter())
+  app.route('/', createSimulacaoRouter())
+  app.route('/', createTermosRouter())
+
+  app.onError((err, c) => {
+    if (err instanceof SyntaxError) {
+      return c.json({ error: 'invalid_json', message: 'JSON inválido.' }, 400)
     }
-    if (typeof err === 'object' && err !== null && (err as { type?: string }).type === 'entity.too.large') {
-      res.status(413).json({ error: 'payload_too_large', message: 'Payload excede o limite permitido.' })
-      return
-    }
-    next(err)
+    throw err
   })
+
   return app
 }

@@ -1,39 +1,41 @@
-import { Router, type Request, type Response } from 'express'
+import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { obterAtraso, obterDetalhamento, obterExtrato, obterPrevisao, podeAcessarContrato } from '../legacyBackend.ts'
 import { toMovimento, toParcelaAtraso, toParcelaDetalhe, toParcelaPrevista } from '../transform.ts'
 import { authenticatedSubject } from '../auth.ts'
 import { isResourceId } from '../validation.ts'
+import type { BffEnv } from '../types.ts'
 
-export function createConsultasRouter(): Router {
-  const router = Router()
+export function createConsultasRouter(): Hono<BffEnv> {
+  const router = new Hono<BffEnv>()
 
-  function authorizeContract(req: Request, res: Response): boolean {
-    const id = typeof req.params.id === 'string' ? req.params.id : ''
-    if (!isResourceId(id) || !podeAcessarContrato(authenticatedSubject(res), id)) {
-      res.status(404).json({ error: 'not_found', message: 'Contrato não encontrado.' })
-      return false
-    }
-    return true
+  function authorizeContract(c: Context<BffEnv>): boolean {
+    const id = c.req.param('id') ?? ''
+    return isResourceId(id) && podeAcessarContrato(authenticatedSubject(c), id)
   }
 
-  router.get('/contratos/:id/extrato', (req, res) => {
-    if (!authorizeContract(req, res)) return
-    res.json(obterExtrato().map(toMovimento))
+  function notFound(c: Context<BffEnv>) {
+    return c.json({ error: 'not_found', message: 'Contrato não encontrado.' }, 404)
+  }
+
+  router.get('/contratos/:id/extrato', (c) => {
+    if (!authorizeContract(c)) return notFound(c)
+    return c.json(obterExtrato().map(toMovimento))
   })
 
-  router.get('/contratos/:id/previsao', (req, res) => {
-    if (!authorizeContract(req, res)) return
-    res.json(obterPrevisao().map(toParcelaPrevista))
+  router.get('/contratos/:id/previsao', (c) => {
+    if (!authorizeContract(c)) return notFound(c)
+    return c.json(obterPrevisao().map(toParcelaPrevista))
   })
 
-  router.get('/contratos/:id/parcelas', (req, res) => {
-    if (!authorizeContract(req, res)) return
-    res.json(obterDetalhamento().map(toParcelaDetalhe))
+  router.get('/contratos/:id/parcelas', (c) => {
+    if (!authorizeContract(c)) return notFound(c)
+    return c.json(obterDetalhamento().map(toParcelaDetalhe))
   })
 
-  router.get('/contratos/:id/atraso', (req, res) => {
-    if (!authorizeContract(req, res)) return
-    res.json(obterAtraso().map(toParcelaAtraso))
+  router.get('/contratos/:id/atraso', (c) => {
+    if (!authorizeContract(c)) return notFound(c)
+    return c.json(obterAtraso().map(toParcelaAtraso))
   })
 
   return router

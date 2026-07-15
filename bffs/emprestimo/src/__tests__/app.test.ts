@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import request from 'supertest'
 import { createApp } from '../app.ts'
 import { resetPropostasEmMemoria } from '../legacyBackend.ts'
 
@@ -8,9 +7,9 @@ beforeEach(() => resetPropostasEmMemoria())
 describe('createApp', () => {
   it('compõe todas as rotas de domínio num único app', async () => {
     const app = createApp({ internalGatewayKey: 'test-gateway-key' })
-    const authenticated = (path: string) => request(app).get(path)
-      .set('X-Internal-Gateway-Key', 'test-gateway-key')
-      .set('X-Authenticated-Subject', 'user1')
+    const authenticated = (path: string) => app.request(path, {
+      headers: { 'X-Internal-Gateway-Key': 'test-gateway-key', 'X-Authenticated-Subject': 'user1' },
+    })
 
     const contratos = await authenticated('/contratos')
     expect(contratos.status).toBe(200)
@@ -27,6 +26,7 @@ describe('createApp', () => {
 
   it('recusa chamadas diretas sem credencial interna do gateway', async () => {
     const app = createApp({ internalGatewayKey: 'test-gateway-key' })
-    await request(app).get('/contratos').expect(401)
+    const res = await app.request('/contratos')
+    expect(res.status).toBe(401)
   })
 })

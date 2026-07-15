@@ -17,7 +17,7 @@ encaminha somente a identidade interna ao BFF correspondente.
 | [`src/auditLog.ts`](./src/auditLog.ts) | Grava JSON lines de forma assíncrona |
 | [`src/routing.ts`](./src/routing.ts) | Resolve o BFF alvo a partir do prefixo `/bff/<nome>` |
 | [`src/proxy.ts`](./src/proxy.ts) | Roteia/encaminha para o BFF, reescrevendo o prefixo |
-| [`src/app.ts`](./src/app.ts) | Monta o pipeline de middlewares — usado pelos testes via `supertest` |
+| [`src/app.ts`](./src/app.ts) | Monta o pipeline de middlewares — usado pelos testes via `app.request()` do Hono |
 | [`src/index.ts`](./src/index.ts) | Bootstrap: sobe o servidor HTTP |
 
 ## Como usar
@@ -45,7 +45,6 @@ npm run test:coverage
 | `JWT_AUDIENCE` | Audiência esperada do JWT; obrigatório em produção | `portal-api` (dev) |
 | `JWT_SHARED_SECRET` | Segredo `HS256`, permitido apenas fora de produção | — |
 | `INTERNAL_GATEWAY_KEY` | Segredo encaminhado aos BFFs; obrigatório em produção | somente dev |
-| `TRUST_PROXY` | Defina `true` apenas atrás de proxy reverso confiável | `false` |
 
 Em produção, configure `JWT_JWKS_URL`, `JWT_ISSUER`, `JWT_AUDIENCE` e
 `INTERNAL_GATEWAY_KEY` em um secret manager. Não publique BFFs no host e não

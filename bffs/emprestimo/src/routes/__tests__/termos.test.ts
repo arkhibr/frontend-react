@@ -1,48 +1,59 @@
 import { describe, it, expect } from 'vitest'
-import express from 'express'
-import request from 'supertest'
+import { Hono } from 'hono'
 import { createTermosRouter } from '../termos.ts'
+import type { BffEnv } from '../../types.ts'
 
 function buildApp() {
-  const app = express()
-  app.use(express.json())
-  app.use((_req, res, next) => { res.locals.auth = { sub: 'user1', roles: [] }; next() })
-  app.use(createTermosRouter())
+  const app = new Hono<BffEnv>()
+  app.use(async (c, next) => {
+    c.set('auth', { sub: 'user1', roles: [] })
+    await next()
+  })
+  app.route('/', createTermosRouter())
   return app
 }
 
 describe('rotas de termos', () => {
   it('GET /termos/:tipo retorna o termo em camelCase para cada tipo válido', async () => {
-    const proposta = await request(buildApp()).get('/termos/PropostaWeb')
-    expect(proposta.body).toMatchObject({ tipoDoTermo: 'PROPOSTA_WEB' })
+    const app = buildApp()
+    const proposta = await app.request('/termos/PropostaWeb')
+    expect(await proposta.json()).toMatchObject({ tipoDoTermo: 'PROPOSTA_WEB' })
 
-    const compart = await request(buildApp()).get('/termos/AutorizacaoConsultaDadosDoTrabalhador')
-    expect(compart.body).toMatchObject({ tipoDoTermo: 'TERMO_COMPARTILHAMENTO' })
+    const compart = await app.request('/termos/AutorizacaoConsultaDadosDoTrabalhador')
+    expect(await compart.json()).toMatchObject({ tipoDoTermo: 'TERMO_COMPARTILHAMENTO' })
 
-    const cadastrais = await request(buildApp()).get('/termos/CONSENTIMENTO_DADOS_CADASTRAIS')
-    expect(cadastrais.body).toMatchObject({ tipoDoTermo: 'CONSENTIMENTO_DADOS_CADASTRAIS' })
+    const cadastrais = await app.request('/termos/CONSENTIMENTO_DADOS_CADASTRAIS')
+    expect(await cadastrais.json()).toMatchObject({ tipoDoTermo: 'CONSENTIMENTO_DADOS_CADASTRAIS' })
   })
 
   it('GET /termos/:tipo responde 404 para um tipo desconhecido', async () => {
-    const res = await request(buildApp()).get('/termos/TipoInexistente')
+    const res = await buildApp().request('/termos/TipoInexistente')
     expect(res.status).toBe(404)
   })
 
   it('POST /termos/preencher-variaveis retorna o texto fixo', async () => {
-    const res = await request(buildApp()).post('/termos/preencher-variaveis').send({ tipoDoTermo: 'PROPOSTA_WEB' })
+    const res = await buildApp().request('/termos/preencher-variaveis', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tipoDoTermo: 'PROPOSTA_WEB' }),
+    })
     expect(res.status).toBe(200)
-    expect(res.body).toBe('Texto do termo preenchido.')
+    expect(await res.json()).toBe('Texto do termo preenchido.')
   })
 
   it('POST /termos/assinar retorna true', async () => {
-    const res = await request(buildApp()).post('/termos/assinar').send({ tipoDoTermoDeAceite: 'PROPOSTA_WEB', sistemaDeOrigem: 'WEB' })
+    const res = await buildApp().request('/termos/assinar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tipoDoTermoDeAceite: 'PROPOSTA_WEB', sistemaDeOrigem: 'WEB' }),
+    })
     expect(res.status).toBe(200)
-    expect(res.body).toBe(true)
+    expect(await res.json()).toBe(true)
   })
 
   it('GET /dados-trabalhador retorna os dados em camelCase', async () => {
-    const res = await request(buildApp()).get('/dados-trabalhador')
+    const res = await buildApp().request('/dados-trabalhador')
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ possuiAutorizacaoParaConsulta: true, valorBaseMargem: 1800, valorMargemDisponivel: 980.5 })
+    expect(await res.json()).toEqual({ possuiAutorizacaoParaConsulta: true, valorBaseMargem: 1800, valorMargemDisponivel: 980.5 })
   })
 })

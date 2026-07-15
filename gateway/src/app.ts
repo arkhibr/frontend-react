@@ -1,16 +1,15 @@
-import cors from 'cors'
-import express from 'express'
-import type { Application } from 'express'
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import { correlationId } from './correlationId.ts'
 import { createAuditLog } from './auditLog.ts'
 import { createRateLimiters } from './rateLimit.ts'
 import { createProxyRouter } from './proxy.ts'
 import { createAuthentication } from './auth.ts'
 import type { GatewayConfig } from './config.ts'
+import type { GatewayEnv } from './types.ts'
 
-export function createApp(config: GatewayConfig): Application {
-  const app = express()
-  app.set('trust proxy', config.trustProxy)
+export function createApp(config: GatewayConfig): Hono<GatewayEnv> {
+  const app = new Hono<GatewayEnv>()
 
   app.use(correlationId)
   app.use(cors({ origin: config.corsOrigin }))
@@ -21,7 +20,7 @@ export function createApp(config: GatewayConfig): Application {
   app.use(global)
   app.use(mutating)
 
-  app.use(createProxyRouter(config.bffs, config.internalGatewayKey))
+  app.all('*', createProxyRouter(config.bffs, config.internalGatewayKey))
 
   return app
 }
