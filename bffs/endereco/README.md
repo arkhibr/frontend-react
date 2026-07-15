@@ -15,7 +15,7 @@ a identidade recebida e o schema do endereço antes da mutação.
 | [`src/validation.ts`](./src/validation.ts) | Valida CEP, campos permitidos e tamanhos |
 | [`src/legacyBackend.ts`](./src/legacyBackend.ts) | Back-end legado simulado (fixture em memória) |
 | [`src/routes.ts`](./src/routes.ts) | Rotas `GET`/`PUT /usuario/endereco` |
-| [`src/app.ts`](./src/app.ts) | Monta o app Express — usado pelos testes via `supertest` |
+| [`src/app.ts`](./src/app.ts) | Monta o app Hono — usado pelos testes via `app.request()` |
 | [`src/index.ts`](./src/index.ts) | Bootstrap: sobe o servidor HTTP |
 
 ## Como usar

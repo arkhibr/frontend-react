@@ -1,24 +1,28 @@
-import express from 'express'
-import type { Application } from 'express'
+import { Hono } from 'hono'
+import { bodyLimit } from 'hono/body-limit'
 import { createRoutes } from './routes.ts'
 import { createInternalAuthentication } from './auth.ts'
 import type { BffConfig } from './config.ts'
+import type { BffEnv } from './types.ts'
 
-export function createApp(config: Pick<BffConfig, 'internalGatewayKey'>): Application {
-  const app = express()
-  app.use(express.json({ limit: '16kb', strict: true }))
+export function createApp(config: Pick<BffConfig, 'internalGatewayKey'>): Hono<BffEnv> {
+  const app = new Hono<BffEnv>()
+
+  app.use(
+    bodyLimit({
+      maxSize: 16 * 1024,
+      onError: (c) => c.json({ error: 'payload_too_large', message: 'Payload excede o limite permitido.' }, 413),
+    }),
+  )
   app.use(createInternalAuthentication(config.internalGatewayKey))
-  app.use(createRoutes())
-  app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (err instanceof SyntaxError && 'body' in err) {
-      res.status(400).json({ error: 'invalid_json', message: 'JSON inválido.' })
-      return
+  app.route('/', createRoutes())
+
+  app.onError((err, c) => {
+    if (err instanceof SyntaxError) {
+      return c.json({ error: 'invalid_json', message: 'JSON inválido.' }, 400)
     }
-    if (typeof err === 'object' && err !== null && (err as { type?: string }).type === 'entity.too.large') {
-      res.status(413).json({ error: 'payload_too_large', message: 'Payload excede o limite permitido.' })
-      return
-    }
-    next(err)
+    throw err
   })
+
   return app
 }
