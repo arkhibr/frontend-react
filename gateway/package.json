@@ -11,8 +11,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "hono": "^4.6.15",
-    "@hono/node-server": "^1.16.0",
+    "@hono/node-server": "^2.0.9",
+    "hono": "^4.12.30",
     "jose": "^6.1.0"
   },
   "devDependencies": {
