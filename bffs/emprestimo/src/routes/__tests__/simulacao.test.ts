@@ -37,7 +37,7 @@ describe('rotas de simulação', () => {
     const res = await buildApp().request('/simulacao/primeiro-vencimento?cl=205&tv=2&dv=5&dl=1&dr=1')
 
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = (await res.json()) as any
     expect(body.dataDeVencimentoInicial).toBe('2026-08-05')
     expect(body.contratosAptosAoRefinanciamento).toHaveLength(1)
   })

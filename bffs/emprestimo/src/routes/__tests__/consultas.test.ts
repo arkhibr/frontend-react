@@ -18,7 +18,7 @@ describe('rotas de consultas', () => {
     const res = await buildApp().request('/contratos/123456-7/extrato?inicio=2026-05-30&fim=2026-06-29')
 
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = (await res.json()) as any[]
     expect(body).toHaveLength(2)
     expect(body[0]).toEqual({ tipo: 'Debito', data: '2026-06-10', historico: 'Prestação mensal', valor: 944.3, saldo: 10189.8 })
   })

@@ -18,7 +18,7 @@ describe('rotas de contratos', () => {
     const res = await buildApp().request('/contratos')
 
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = (await res.json()) as any[]
     expect(body).toHaveLength(2)
     expect(body[0]).toMatchObject({ numero: '123456-7', linhaDeCredito: 'Crédito Pessoal', saldoAtual: 9245.5 })
     expect(body[0].CodigoDaLinha).toBeUndefined()

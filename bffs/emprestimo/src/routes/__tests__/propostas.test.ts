@@ -49,7 +49,7 @@ describe('rotas de propostas', () => {
     expect(await res.json()).toEqual({ numeroDoContrato: 'PRP-2026-0102' })
 
     const lista = await app.request('/propostas')
-    const listaBody = await lista.json()
+    const listaBody = (await lista.json()) as any[]
     expect(listaBody).toHaveLength(2)
     expect(listaBody[0]).toMatchObject({ numero: 'PRP-2026-0102', valorBruto: 10800 })
   })
