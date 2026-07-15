@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import request from 'supertest'
 import { createServer } from 'node:http'
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
@@ -47,7 +46,6 @@ function buildConfig(bffs: Record<string, string>): GatewayConfig {
     bffs,
     auth: { issuer: 'portal-test', audience: 'portal-api', sharedSecret: 'test-shared-secret' },
     internalGatewayKey: 'test-gateway-key',
-    trustProxy: false,
     rateLimit: { windowMs: 60_000, globalMax: 100, mutatingMax: 20 },
     auditLogPath: join(tempDir, 'audit.log'),
   }
@@ -69,36 +67,46 @@ describe('createApp', () => {
     const bffUrl = await startFakeBff()
     const config = buildConfig({ emprestimo: bffUrl })
 
-    const res = await request(createApp(config)).get('/bff/emprestimo/contratos').set('Authorization', `Bearer ${await token()}`)
+    const res = await createApp(config).request('/bff/emprestimo/contratos', {
+      headers: { Authorization: `Bearer ${await token()}` },
+    })
 
     expect(res.status).toBe(200)
-    expect(res.body).toEqual({ path: '/contratos', method: 'GET', subject: 'user1', internalKey: 'test-gateway-key' })
-    expect(res.body).not.toHaveProperty('authorization')
+    const body = await res.json()
+    expect(body).toEqual({ path: '/contratos', method: 'GET', subject: 'user1', internalKey: 'test-gateway-key' })
+    expect(body).not.toHaveProperty('authorization')
   })
 
   it('responde 404 para um BFF desconhecido', async () => {
     const config = buildConfig({})
 
-    const res = await request(createApp(config)).get('/bff/inexistente/foo').set('Authorization', `Bearer ${await token()}`)
+    const res = await createApp(config).request('/bff/inexistente/foo', {
+      headers: { Authorization: `Bearer ${await token()}` },
+    })
 
     expect(res.status).toBe(404)
-    expect(res.body.error).toBe('not_found')
+    const body = (await res.json()) as { error: string }
+    expect(body.error).toBe('not_found')
   })
 
   it('libera CORS para a origem configurada', async () => {
     const config = buildConfig({})
 
-    const res = await request(createApp(config))
-      .get('/bff/inexistente/foo')
-      .set('Origin', 'http://localhost:5173')
-      .set('Authorization', `Bearer ${await token()}`)
+    const res = await createApp(config).request('/bff/inexistente/foo', {
+      headers: {
+        Origin: 'http://localhost:5173',
+        Authorization: `Bearer ${await token()}`,
+      },
+    })
 
-    expect(res.headers['access-control-allow-origin']).toBe('http://localhost:5173')
+    expect(res.headers.get('access-control-allow-origin')).toBe('http://localhost:5173')
   })
 
   it('rejeita token ausente ou inválido antes de chamar o BFF', async () => {
     const config = buildConfig({})
-    await request(createApp(config)).get('/bff/emprestimo/contratos').expect(401)
-    await request(createApp(config)).get('/bff/emprestimo/contratos').set('Authorization', 'Bearer x.e30.x').expect(401)
+    expect((await createApp(config).request('/bff/emprestimo/contratos')).status).toBe(401)
+    expect((await createApp(config).request('/bff/emprestimo/contratos', {
+      headers: { Authorization: 'Bearer x.e30.x' },
+    })).status).toBe(401)
   })
 })

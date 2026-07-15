@@ -9,7 +9,6 @@ export interface GatewayConfig {
     sharedSecret?: string
   }
   internalGatewayKey: string
-  trustProxy: boolean
   rateLimit: {
     windowMs: number
     globalMax: number
@@ -56,7 +55,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): GatewayConfig 
       'INTERNAL_GATEWAY_KEY',
       isProduction ? undefined : 'development-only-gateway-key',
     ),
-    trustProxy: env.TRUST_PROXY === 'true',
     rateLimit: {
       windowMs: 60_000,
       globalMax: numberEnv(env.RATE_LIMIT_GLOBAL_MAX, 100),
