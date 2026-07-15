@@ -17,7 +17,7 @@ payloads, aplica autorização por usuário e adapta o back-end legado simulado.
 | [`src/domain.ts`](./src/domain.ts) | Contrato limpo (camelCase) exposto ao MFE |
 | [`src/transform.ts`](./src/transform.ts) | Transformação legado → domínio (e domínio → legado para criação de proposta) |
 | [`src/routes/`](./src/routes/) | Rotas HTTP por área de domínio (contratos, propostas, consultas, simulação, termos) |
-| [`src/app.ts`](./src/app.ts) | Monta o app Express — usado pelos testes via `supertest` |
+| [`src/app.ts`](./src/app.ts) | Monta o app Hono — usado pelos testes via `app.request()` |
 | [`src/index.ts`](./src/index.ts) | Bootstrap: sobe o servidor HTTP |
 
 ## Como usar
