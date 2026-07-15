@@ -1,5 +1,6 @@
 import { timingSafeEqual } from 'node:crypto'
-import type { RequestHandler } from 'express'
+import type { Context, MiddlewareHandler } from 'hono'
+import type { BffEnv } from './types.ts'
 
 export interface InternalUser {
   sub: string
@@ -13,21 +14,20 @@ function keysMatch(actual: string | undefined, expected: string): boolean {
   return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer)
 }
 
-export function createInternalAuthentication(internalGatewayKey: string): RequestHandler {
-  return (req, res, next) => {
-    const sub = req.header('x-authenticated-subject')
-    if (!keysMatch(req.header('x-internal-gateway-key'), internalGatewayKey) ||
+export function createInternalAuthentication(internalGatewayKey: string): MiddlewareHandler<BffEnv> {
+  return async (c, next) => {
+    const sub = c.req.header('x-authenticated-subject')
+    if (!keysMatch(c.req.header('x-internal-gateway-key'), internalGatewayKey) ||
       !sub || !/^[A-Za-z0-9._:@-]{1,128}$/.test(sub)) {
-      res.status(401).json({ error: 'unauthorized', message: 'Requisição interna não autenticada.' })
-      return
+      return c.json({ error: 'unauthorized', message: 'Requisição interna não autenticada.' }, 401)
     }
-    const rawRoles = req.header('x-authenticated-roles') ?? ''
+    const rawRoles = c.req.header('x-authenticated-roles') ?? ''
     const roles = rawRoles === '' ? [] : rawRoles.split(',').filter((role) => /^[A-Za-z0-9:_-]{1,64}$/.test(role))
-    res.locals.auth = { sub, roles } satisfies InternalUser
-    next()
+    c.set('auth', { sub, roles } satisfies InternalUser)
+    await next()
   }
 }
 
-export function authenticatedSubject(res: { locals: Record<string, unknown> }): string {
-  return (res.locals.auth as InternalUser).sub
+export function authenticatedSubject(c: Context<BffEnv>): string {
+  return c.get('auth').sub
 }

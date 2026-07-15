@@ -1,28 +1,28 @@
-import { Router } from 'express'
+import { Hono } from 'hono'
 import { listarContratos, obterContrato } from '../legacyBackend.ts'
 import { toContrato } from '../transform.ts'
 import { authenticatedSubject } from '../auth.ts'
 import { isResourceId } from '../validation.ts'
+import type { BffEnv } from '../types.ts'
 
-export function createContratosRouter(): Router {
-  const router = Router()
+export function createContratosRouter(): Hono<BffEnv> {
+  const router = new Hono<BffEnv>()
 
-  router.get('/contratos', (_req, res) => {
-    res.json(listarContratos(authenticatedSubject(res)).map(toContrato))
+  router.get('/contratos', (c) => {
+    return c.json(listarContratos(authenticatedSubject(c)).map(toContrato))
   })
 
-  router.get('/contratos/:id', (req, res) => {
-    const owner = authenticatedSubject(res)
-    if (!isResourceId(req.params.id)) {
-      res.status(400).json({ error: 'invalid_request', message: 'Identificador de contrato inválido.' })
-      return
+  router.get('/contratos/:id', (c) => {
+    const owner = authenticatedSubject(c)
+    const id = c.req.param('id')
+    if (!isResourceId(id)) {
+      return c.json({ error: 'invalid_request', message: 'Identificador de contrato inválido.' }, 400)
     }
-    const contrato = obterContrato(owner, req.params.id)
+    const contrato = obterContrato(owner, id)
     if (!contrato) {
-      res.status(404).json({ error: 'not_found', message: 'Contrato não encontrado.' })
-      return
+      return c.json({ error: 'not_found', message: 'Contrato não encontrado.' }, 404)
     }
-    res.json(toContrato(contrato))
+    return c.json(toContrato(contrato))
   })
 
   return router
