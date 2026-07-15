@@ -1,6 +1,7 @@
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose'
-import type { RequestHandler } from 'express'
+import type { MiddlewareHandler } from 'hono'
 import type { GatewayConfig } from './config.ts'
+import type { GatewayEnv } from './types.ts'
 
 export interface AuthenticatedUser {
   sub: string
@@ -15,16 +16,15 @@ function userFromPayload(payload: JWTPayload): AuthenticatedUser | null {
   return { sub: payload.sub, roles }
 }
 
-export function createAuthentication(config: GatewayConfig['auth']): RequestHandler {
+export function createAuthentication(config: GatewayConfig['auth']): MiddlewareHandler<GatewayEnv> {
   const remoteJwks = config.jwksUrl ? createRemoteJWKSet(new URL(config.jwksUrl)) : null
   const sharedSecret = config.sharedSecret ? new TextEncoder().encode(config.sharedSecret) : null
 
-  return async (req, res, next) => {
-    const authorization = req.header('authorization')
+  return async (c, next) => {
+    const authorization = c.req.header('authorization')
     const match = authorization?.match(/^Bearer ([A-Za-z0-9._~-]+)$/)
     if (!match) {
-      res.status(401).json({ error: 'unauthorized', message: 'Token Bearer ausente ou inválido.' })
-      return
+      return c.json({ error: 'unauthorized', message: 'Token Bearer ausente ou inválido.' }, 401)
     }
 
     try {
@@ -34,10 +34,10 @@ export function createAuthentication(config: GatewayConfig['auth']): RequestHand
         : await jwtVerify(match[1], sharedSecret!, { ...options, algorithms: ['HS256'] })
       const user = userFromPayload(payload)
       if (!user) throw new Error('claims inválidos')
-      res.locals.auth = user
-      next()
+      c.set('auth', user)
+      await next()
     } catch {
-      res.status(401).json({ error: 'unauthorized', message: 'Token Bearer ausente ou inválido.' })
+      return c.json({ error: 'unauthorized', message: 'Token Bearer ausente ou inválido.' }, 401)
     }
   }
 }
