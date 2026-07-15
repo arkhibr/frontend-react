@@ -63,7 +63,7 @@ frontend-react/
 ├── mfes/
 │   ├── endereco/             ← MFE autônomo (package.json/vite/vitest/deploy próprios)
 │   └── emprestimo/           ← MFE autônomo
-├── gateway/                  ← Gateway de API (Express) — porta única de entrada (ADR-015)
+├── gateway/                  ← Gateway de API (Hono) — porta única de entrada (ADR-015, ADR-016)
 ├── bffs/
 │   ├── emprestimo/           ← BFF do MFE de empréstimo — transforma o contrato legado
 │   └── endereco/             ← BFF do MFE de endereço
