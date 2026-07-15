@@ -87,3 +87,4 @@ O custo de carga dinâmica desse mecanismo é medido e documentado em [`docs/per
 | [ADR-014](adrs/ADR-014-css-e-contrato-visual-em-microfrontends.md) | **CSS e contrato visual em microfrontends dinâmicos** | Proposed |
 | [ADR-015](adrs/ADR-015-gateway-api-e-bff.md) | **Gateway de API com BFFs** | Proposed |
 | [ADR-016](adrs/ADR-016-hono-gateway-e-bffs.md) | **Hono como framework web de Gateway e BFFs** | Proposed |
+| [ADR-017](adrs/ADR-017-contrato-de-tipos-mfe-bff-hono-rpc.md) | **Contrato de tipos entre MFE e BFF via Hono RPC** | Proposed |
