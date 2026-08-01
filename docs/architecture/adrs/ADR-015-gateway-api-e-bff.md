@@ -19,7 +19,7 @@ Desde a ADR-008, cada MFE "se comunica apenas com o back-end, nunca com outros M
 |-----------|-----------|---------|
 | Separação de responsabilidades | ✅ | Gateway cuida de borda (auditoria/tráfego); BFF cuida de contrato por MFE |
 | Baixo acoplamento | ✅ | MFE não conhece mais o formato do back-end legado, só o contrato do seu BFF |
-| Abertura para extensão | ✅ | Novo MFE = novo BFF + nova entrada de roteamento no Gateway |
+| Abertura para extensão | ✅ | Um novo MFE normalmente ganha seu próprio BFF e uma entrada de roteamento no Gateway — sem, porém, impor cardinalidade 1:1 (ver Atualização 1.2) |
 | Ponto único de falha | ⚠️ | Gateway e BFFs são novos componentes na cadeia — ver Riscos |
 
 ## Stakeholders (RACI)
@@ -93,6 +93,26 @@ de payload e limite de JSON. O rate limit é indexado pelo `sub` autenticado e a
 auditoria é assíncrona. Chamar BFF diretamente ou forjar headers internos deve
 retornar `401`.
 
+### Atualização 1.2 — a cardinalidade MFE↔BFF não é 1:1
+
+A opção escolhida foi nomeada "um BFF por MFE" porque essa é a topologia
+**inicial e default** da plataforma (`emprestimo` e `endereco`, um BFF homônimo
+cada). Isso descreve o ponto de partida, **não uma restrição arquitetural**: a
+relação entre MFEs e BFFs **não é um-para-um**.
+
+Nada no desenho força 1:1. O Gateway roteia genericamente por nome — `resolveTarget`
+casa `/bff/<nome>` contra um `Record<string, string>` de nome→URL
+(`gateway/src/routing.ts`, `config.ts`), sem qualquer conhecimento de MFE. Portanto:
+
+- **um BFF pode servir mais de um MFE** (BFF compartilhado/de agregação), e
+- **um MFE pode consumir mais de um BFF** (compondo dados de vários alvos).
+
+Do lado do MFE, o alvo deixou de ser fixo: `createHttpClient` aceita um campo
+`bff` opcional (`mfes/*/src/api/httpClient.ts`), com default no BFF homônimo para
+preservar o comportamento atual. Sobrescrevê-lo direciona outro BFF; criar um
+client por alvo permite compor vários. O único acoplamento remanescente é essa
+**convenção de nomes default**, não um vínculo estrutural.
+
 ## Consequências
 
 ### Positivas
@@ -147,3 +167,4 @@ retornar `401`.
 |--------|------|-------|----------|
 | 1.0 | 2026-07-05 | Marco Mendes | Versão inicial |
 | 1.1 | 2026-07-11 | Codex | Gateway autenticado, BFFs privados e autorização por recurso |
+| 1.2 | 2026-08-01 | Marco Mendes | Esclarece que a cardinalidade MFE↔BFF não é 1:1 (roteamento genérico por nome; `bff` configurável no MFE) |

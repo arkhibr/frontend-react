@@ -22,6 +22,14 @@ describe('createHttpClient', () => {
     expect(fetchMock).toHaveBeenCalledWith('/emprestimos', expect.anything())
   })
 
+  it('direciona outro BFF via deps.bff — a relação MFE↔BFF não é 1:1', async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ok: true })))
+    vi.stubGlobal('fetch', fetchMock)
+    const client = createHttpClient({ apiUrl: 'http://api', token: 't1', onUnauthorized: () => {}, bff: 'endereco' })
+    await client('/enderecos')
+    expect(fetchMock).toHaveBeenCalledWith('http://api/bff/endereco/enderecos', expect.anything())
+  })
+
   it('chama onUnauthorized em 401', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 401 })))
     const onUnauthorized = vi.fn()

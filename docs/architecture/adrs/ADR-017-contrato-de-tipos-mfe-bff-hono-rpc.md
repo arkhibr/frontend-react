@@ -4,7 +4,7 @@
 
 ## Contexto e Problema
 
-Cada MFE (`mfes/endereco`, `mfes/emprestimo`) mantém sua própria cópia manual do contrato de resposta do seu BFF — um `domain.ts` no MFE que espelha, campo a campo, o `domain.ts`/`transform.ts` do BFF correspondente. Essa duplicação é proposital (ADR-009: "MFE autônomo, sem dependências entre si" — nem o `httpClient.ts` do shell é compartilhado com os MFEs, cada um mantém sua própria cópia), mas tem um custo: nenhum sinal de compilação avisa quando o BFF muda o formato de uma resposta. Um campo renomeado ou removido no BFF só aparece como bug em runtime no MFE, potencialmente em produção.
+Cada MFE (`mfes/endereco`, `mfes/emprestimo`) mantém sua própria cópia manual do contrato de resposta do BFF que consome — um `domain.ts` no MFE que espelha, campo a campo, o `domain.ts`/`transform.ts` do BFF de origem. Na topologia atual cada MFE consome um único BFF homônimo, mas a relação MFE↔BFF não é 1:1 (ver ADR-015, Atualização 1.2): um MFE pode consumir mais de um BFF. Onde este documento fala do "BFF correspondente", leia-se "cada BFF que o MFE consome" — o mecanismo abaixo (um `contract.ts` por BFF, um alias por BFF consumido) se aplica igual, um alias por BFF em vez de exatamente um por MFE. Essa duplicação é proposital (ADR-009: "MFE autônomo, sem dependências entre si" — nem o `httpClient.ts` do shell é compartilhado com os MFEs, cada um mantém sua própria cópia), mas tem um custo: nenhum sinal de compilação avisa quando o BFF muda o formato de uma resposta. Um campo renomeado ou removido no BFF só aparece como bug em runtime no MFE, potencialmente em produção.
 
 A ADR-016 (Hono como framework web de Gateway e BFFs) tornou essa lacuna, pela primeira vez, endereçável sem dependência nova: Hono expõe nativamente um cliente tipado (`hc()`) que infere o contrato de um app Hono a partir do próprio tipo TypeScript da instância, sem exigir schema paralelo (OpenAPI, GraphQL SDL) nem framework adicional (tRPC).
 
@@ -127,3 +127,4 @@ A dependência de build introduzida (o MFE precisa do BFF correspondente com dep
 | Versão | Data | Autor | Mudanças |
 |--------|------|-------|----------|
 | 1.0 | 2026-07-15 | Marco Mendes | Versão inicial — proposta, aguardando aprovação |
+| 1.1 | 2026-08-01 | Marco Mendes | Esclarece que a relação MFE↔BFF não é 1:1; "BFF correspondente" = cada BFF consumido pelo MFE (um alias por BFF) |

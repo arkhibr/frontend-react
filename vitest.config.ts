@@ -11,6 +11,11 @@ export default defineConfig({
     setupFiles: ['./src/test-setup.ts'],
     // mfes/**, gateway/** e bffs/** têm seu próprio runner de teste (vitest por pacote); não rodar aqui.
     exclude: ['**/node_modules/**', 'tests/e2e/**', 'mfes/**', 'gateway/**', 'bffs/**'],
+    // Micro-benchmarks de desempenho (vitest bench), escopados ao shell — cada
+    // sub-pacote tem os seus. Rode com `npm run bench`.
+    benchmark: {
+      include: ['src/**/*.bench.ts'],
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],

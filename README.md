@@ -25,7 +25,7 @@
 
 ## Conceito
 
-O repositório desempenha o papel de **shell nuclear**: um núcleo estável que cuida de autenticação, layout, roteamento e do carregamento dos MFEs. Funcionalidades de negócio entram e saem da plataforma **sem recompilar o shell** — basta declará-las no manifesto. Cada MFE é construído, versionado e implantado de forma independente, empacota o próprio React e se comunica apenas com o back-end (via `apiUrl`), nunca com outros MFEs. A partir da ADR-015, "o back-end" é o Gateway de API — que roteia, audita e aplica controle de tráfego antes de encaminhar cada requisição ao BFF do MFE correspondente.
+O repositório desempenha o papel de **shell nuclear**: um núcleo estável que cuida de autenticação, layout, roteamento e do carregamento dos MFEs. Funcionalidades de negócio entram e saem da plataforma **sem recompilar o shell** — basta declará-las no manifesto. Cada MFE é construído, versionado e implantado de forma independente, empacota o próprio React e se comunica apenas com o back-end (via `apiUrl`), nunca com outros MFEs. A partir da ADR-015, "o back-end" é o Gateway de API — que roteia, audita e aplica controle de tráfego antes de encaminhar cada requisição ao BFF alvo, resolvido por nome (`/bff/<nome>`). A relação MFE↔BFF não é 1:1: um BFF pode servir mais de um MFE e um MFE pode consumir mais de um BFF (ver ADR-015, Atualização 1.2).
 
 <img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/e9426edc-acb4-431a-b159-fcb782b84c03" />
 
@@ -192,6 +192,7 @@ Com o Gateway no ar, configure `dist/config.json` (ou `public/config.json` em de
 | `npm run test` | Testes unitários e de integração (Vitest) |
 | `npm run test:watch` | Vitest em modo watch |
 | `npm run test:coverage` | Testes com relatório de cobertura |
+| `npm run bench` | Micro-benchmarks de desempenho das unidades (`vitest bench`) — ver [ADR-005](docs/architecture/adrs/ADR-005-testes.md) |
 | `npm run test:e2e` | Testes ponta a ponta (Playwright) |
 | `npm run test:e2e:ui` | Playwright em modo UI |
 | `npm run lint` | ESLint, incluindo fronteiras FSD (ver [ADR-007](docs/architecture/adrs/ADR-007-imposicao-fronteiras-arquiteturais.md)) |
@@ -212,6 +213,7 @@ Detalhada em [ADR-005](docs/architecture/adrs/ADR-005-testes.md).
 
 - **Unidade/integração (Vitest):** runtime do MFE, fatias Redux, componentes. O shell roda apenas seus testes — `mfes/**` e `**/node_modules/**` são excluídos.
 - **Cobertura:** o MFE de endereço impõe threshold ≥ 80%.
+- **Desempenho (`vitest bench`):** micro-benchmarks das unidades puras do caminho quente (validadores, `tokenParser`, `resolveTarget` do Gateway, `transform` do BFF). `npm run bench` na raiz, em `gateway/` e em `bffs/emprestimo/`. Resultados executados e sua leitura estão em [ADR-005](docs/architecture/adrs/ADR-005-testes.md#desempenho--micro-benchmarks-de-unidades-vitest-bench).
 - **E2E — testes end-to-end (Playwright):** [`tests/e2e/`](tests/e2e/). O fluxo de MFE valida tanto a carga dinâmica quanto o isolamento de falha (shell sobrevive a um bundle indisponível).
 
 ## Configuração externa e variáveis de ambiente

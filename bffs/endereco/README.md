@@ -2,7 +2,9 @@
 
 ## Responsabilidade
 
-BFF (Backend for Frontend) do MFE de endereço. Expõe `GET`/`PUT
+BFF (Backend for Frontend) da área de endereço — consumido hoje pelo MFE
+homônimo, sem que a relação MFE↔BFF seja 1:1 (ver ADR-015, Atualização 1.2).
+Expõe `GET`/`PUT
 /usuario/endereco` somente por meio do gateway interno; valida a chave de serviço,
 a identidade recebida e o schema do endereço antes da mutação.
 

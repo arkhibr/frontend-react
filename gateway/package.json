@@ -8,7 +8,8 @@
     "start": "node --experimental-strip-types src/index.ts",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "bench": "vitest bench --run"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.9",

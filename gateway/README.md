@@ -4,7 +4,9 @@
 
 Porta única de entrada pública entre os MFEs e os BFFs. Valida JWT antes de
 aplicar correlação, controle de tráfego e auditoria; então remove o Bearer e
-encaminha somente a identidade interna ao BFF correspondente.
+encaminha somente a identidade interna ao BFF alvo, resolvido por nome
+(`/bff/<nome>`). A relação MFE↔BFF não é 1:1 — o roteamento por nome não impõe
+essa restrição (ver ADR-015, Atualização 1.2).
 
 ## Estrutura
 

@@ -2,7 +2,7 @@
 
 ## Contexto e Problema
 
-Desde a ADR-015, a plataforma opera um Gateway de API e um BFF (Backend for Frontend) por MFE, todos implementados em **Express 5** sobre Node.js. O Gateway depende de `express`, `cors`, `express-rate-limit` e `http-proxy-middleware`; os BFFs (`bffs/endereco`, `bffs/emprestimo`) dependem apenas de `express`. Essas dependências são específicas do modelo `req`/`res` do Express — `http-proxy-middleware`, em particular, só existe para adaptar um proxy reverso a esse modelo, e `express-rate-limit` embute sua própria noção de `Request`/`Response` do Express.
+Desde a ADR-015, a plataforma opera um Gateway de API e um conjunto de BFFs (Backend for Frontend) — hoje um por MFE, embora a relação MFE↔BFF não seja 1:1 (ADR-015, Atualização 1.2) —, todos implementados em **Express 5** sobre Node.js. O Gateway depende de `express`, `cors`, `express-rate-limit` e `http-proxy-middleware`; os BFFs (`bffs/endereco`, `bffs/emprestimo`) dependem apenas de `express`. Essas dependências são específicas do modelo `req`/`res` do Express — `http-proxy-middleware`, em particular, só existe para adaptar um proxy reverso a esse modelo, e `express-rate-limit` embute sua própria noção de `Request`/`Response` do Express.
 
 O cliente solicitou a padronização do framework web da plataforma em **Hono**. Avaliado tecnicamente, o pedido se sustenta por méritos próprios, independentes de quem o solicitou: Hono é construído sobre Web Standards (`Request`/`Response`/`fetch` nativos, sem camada de compatibilidade sobre o `http` do Node), tem núcleo com zero dependências e poucos KB (Express, via `body-parser`/`finalhandler`/`send` etc., carrega uma árvore de dependências transitivas bem maior), usa um roteador otimizado (`RegExpRouter`) citado pelo próprio benchmark do projeto como um dos mais rápidos entre frameworks compatíveis com Node, e nasce com tipagem de rotas e contexto de primeira classe — relevante num monorepo 100% TypeScript como este. Hono também traz nativamente boa parte do que hoje só existe no Gateway via dependência de terceiro (CORS, cabeçalhos de segurança, ETag, compressão, JWT), reduzindo a superfície de dependências externas do próprio framework.
 
@@ -133,3 +133,4 @@ Dado esse conjunto de vantagens técnicas, a pergunta relevante deixa de ser *se
 |--------|------|-------|----------|
 | 1.0 | 2026-07-15 | Marco Mendes | Versão inicial |
 | 1.1 | 2026-07-15 | Marco Mendes | Justificativa e drivers reformulados para se apoiar em méritos técnicos do Hono (performance, Web Standards, tipagem, portabilidade), com o requisito do cliente como um driver entre outros, não a justificativa central |
+| 1.2 | 2026-08-01 | Marco Mendes | Esclarece no contexto que a relação MFE↔BFF não é 1:1 (ver ADR-015, Atualização 1.2) |

@@ -2,7 +2,9 @@
 
 ## Responsabilidade
 
-BFF (Backend for Frontend) do MFE de empréstimo. Expõe um contrato limpo em
+BFF (Backend for Frontend) da área de empréstimo — consumido hoje pelo MFE
+homônimo, sem que a relação MFE↔BFF seja 1:1 (ver ADR-015, Atualização 1.2).
+Expõe um contrato limpo em
 camelCase, mas só aceita chamadas autenticadas pelo gateway interno. Valida
 payloads, aplica autorização por usuário e adapta o back-end legado simulado.
 
